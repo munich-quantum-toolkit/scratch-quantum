@@ -116,6 +116,23 @@ class AST {
     }
 }
 
+class EvaluationSettings {
+    static SimulatorType = {
+        STATEVECTOR: 'Statevector Simulator',
+        DECISION_DIAGRAM: 'Decision Diagram Simulator',
+        RESOURCE_ESTIMATOR: 'Resource Estimator'
+    };
+    static ArchitectureType = {
+        ALL_TO_ALL: 'All-to-All',
+        LINEAR: 'Linear Nearest Neighbor',
+        HEAVY_HEAVY: 'Heavy-Hex'
+    };
+    static NoiseModel = {
+        IDEAL: 'Ideal',
+        IID: 'i.i.d. Noise',
+    }
+}
+
 class QuantumExtension {
     constructor(runtime) {
         this.runtime = runtime;
@@ -268,6 +285,64 @@ class QuantumExtension {
                             defaultValue: "/"
                         },
                     },
+                },
+                {
+                    opcode: 'evaluateLabel',
+                    blockType: BlockType.BUTTON,
+                    text: 'Circuit Evaluation'
+                },
+                
+                {
+                    opcode: 'quantumEvaluate',
+                    blockType: BlockType.HAT,
+                    text: "Quantum Circuit",
+                    isEdgeActivated: false
+                },
+                {
+                    opcode: 'evaluateCircuits',
+                    blockType: BlockType.COMMAND,
+                    text: "Evaluate Quantum Circuits",
+                },
+                {
+                    opcode: 'evaluateCircuitsSimulator',
+                    blockType: BlockType.COMMAND,
+                    text: "Evaluate Quantum Circuits using [SIMULATOR]",
+                    arguments: {
+                        SIMULATOR: {
+                            type: ArgumentType.STRING,
+                            menu: 'simulators',
+                            defaultValue: 'Statevector Simulator'
+                        }
+                    },
+                },
+                {
+                    opcode: 'evaluateCircuitsNoise',
+                    blockType: BlockType.COMMAND,
+                    text: "Evaluate Quantum Circuits with [NOISE_MODEL]",
+                    arguments: {
+                        NOISE_MODEL: {
+                            type: ArgumentType.STRING,
+                            menu: 'noiseModels',
+                            defaultValue: 'Ideal'
+                        }
+                    },
+                },
+                {
+                    opcode: 'evaluateCircuitsSimulatorNoise',
+                    blockType: BlockType.COMMAND,
+                    text: "Evaluate Quantum Circuits with [SIMULATOR] and [NOISE_MODEL]",
+                    arguments: {
+                        SIMULATOR: {
+                            type: ArgumentType.STRING,
+                            menu: 'simulators',
+                            defaultValue: 'Statevector Simulator'
+                        },
+                        NOISE_MODEL: {
+                            type: ArgumentType.STRING,
+                            menu: 'noiseModels',
+                            defaultValue: 'Ideal'
+                        }
+                    },
                 }
             ],
             menus: {
@@ -288,6 +363,21 @@ class QuantumExtension {
                         { text: 'X', value: 'X' },
                         { text: 'Y', value: 'Y' },
                         { text: 'Z', value: 'Z' },
+                    ]
+                },
+                simulators: {
+                    acceptReporters: true,
+                    items: [
+                        { text: EvaluationSettings.SimulatorType.STATEVECTOR, value: EvaluationSettings.SimulatorType.STATEVECTOR },
+                        { text: EvaluationSettings.SimulatorType.DECISION_DIAGRAM, value: EvaluationSettings.SimulatorType.DECISION_DIAGRAM },
+                        { text: EvaluationSettings.SimulatorType.RESOURCE_ESTIMATOR, value: EvaluationSettings.SimulatorType.RESOURCE_ESTIMATOR },
+                    ]
+                },
+                noiseModels: {
+                    acceptReporters: true,
+                    items: [
+                        { text: EvaluationSettings.NoiseModel.IDEAL, value: EvaluationSettings.NoiseModel.IDEAL },
+                        { text: EvaluationSettings.NoiseModel.IID, value: EvaluationSettings.NoiseModel.IID },
                     ]
                 }
             }
@@ -430,6 +520,30 @@ class QuantumExtension {
         this.runtime.simulationState.controlStack.push(parsedQubit);
         util.startBranch(1, false);
         this.runtime.simulationState.controlStack.pop();
+    }
+
+    quantumEvaluate() {
+        return true;
+    }
+
+    evaluateCircuits() {
+        this.genericEvaluateCircuits(EvaluationSettings.SimulatorType.STATEVECTOR, EvaluationSettings.NoiseModel.IDEAL);
+    }
+
+    evaluateCircuitsSimulator(args) {
+        this.genericEvaluateCircuits(args.SIMULATOR, EvaluationSettings.NoiseModel.IDEAL);
+    }
+
+    evaluateCircuitsNoise(args) {
+        this.genericEvaluateCircuits(EvaluationSettings.SimulatorType.STATEVECTOR, args.NOISE_MODEL);
+    }
+
+    evaluateCircuitsSimulatorNoise(args) {
+        this.genericEvaluateCircuits(args.SIMULATOR, args.NOISE_MODEL);
+    }
+
+    genericEvaluateCircuits(simulator, noiseModel) {
+        this.runtime.startHats('quantum_quantumEvaluate');
     }
 }
 
