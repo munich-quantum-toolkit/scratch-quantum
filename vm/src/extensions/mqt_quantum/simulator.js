@@ -6,6 +6,10 @@ class Control {
 }
 
 class Simulator {
+    constructor (startingState) {
+        this.startingState = startingState;
+    }
+
     // eslint-disable-next-line no-unused-vars
     createRegister (name, size) {
         throw new Error('createRegister method not implemented');
@@ -24,6 +28,11 @@ class Simulator {
     // eslint-disable-next-line no-unused-vars
     measure (qubit) {
         throw new Error('measure method not implemented');
+    }
+
+    // eslint-disable-next-line no-unused-vars
+    setStartingState (state) {
+        throw new Error('setStartingState method not implemented');
     }
 }
 

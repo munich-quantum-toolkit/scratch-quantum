@@ -154,7 +154,6 @@ class Vector extends Matrix {
     }
 
     setElement (index, value) {
-        console.log('Setting element at index', index, 'to value', value);
         super.set(index, 0, value);
     }
 
@@ -170,7 +169,7 @@ class Vector extends Matrix {
             throw new Error('Cannot normalize a zero vector');
         }
         for (let i = 0; i < this.n; i++) {
-            this.set(i, this.getElement(i).scalarProduct(1 / norm));
+            this.setElement(i, this.getElement(i).scalarProduct(1 / norm));
         }
     }
 }
@@ -194,9 +193,10 @@ const targetAccess = function (target) {
 };
 
 class StatevectorSimulator extends Simulator {
-    constructor () {
-        super();
-        this.statevector = new Vector(0);
+    constructor (startingState) {
+        super(startingState);
+        this.statevector = new Vector(1);
+        this.statevector.setElement(0, new Complex(1, 0));
         this.registers = [];
     }
 
@@ -208,7 +208,6 @@ class StatevectorSimulator extends Simulator {
                 break;
             }
             index += reg.size;
-            console.log(reg.size, typeof reg.size);
         }
         return index;
     }
@@ -234,8 +233,8 @@ class StatevectorSimulator extends Simulator {
         let matrix = this._getGateMatrix(gate);
         matrix = this._addControlsToMatrix(
             matrix,
-            positiveControlAccesses.length,
-            negativeControlAccesses.length
+            positiveControlAccesses,
+            negativeControlAccesses
         );
         this._applyMatrixToQubits(matrix, [
             ...positiveControlAccesses,
@@ -274,9 +273,10 @@ class StatevectorSimulator extends Simulator {
                 .toString(2)
                 .padStart(this._getNumQubits(), '0')
                 .split('')
+                .reverse()
                 .map(Number);
             if (bits[access] === 0) continue; // Skip if qubit is not in the state we want to measure
-            const amplitude = this.statevector.get(i, 0);
+            const amplitude = this.statevector.getElement(i);
             probability += amplitude.squaredMagnitude();
         }
 
@@ -288,10 +288,10 @@ class StatevectorSimulator extends Simulator {
                 .toString(2)
                 .padStart(this._getNumQubits(), '0')
                 .split('')
+                .reverse()
                 .map(Number);
-            console.log('access:', access, 'bits[access]:', bits[access], 'outcome:', outcome);
-            if (bits[access] === outcome) continue; // Skip if qubit is not in the state we want to measure
-            this.statevector.set(i, 0, new Complex(0, 0)); // Collapse the statevector
+            if (bits[access] === outcome) continue; // Skip if qubit is in the measure outcome state
+            this.statevector.setElement(i, new Complex(0, 0)); // Collapse the statevector
         }
 
         this.statevector.normalize();
@@ -378,63 +378,56 @@ class StatevectorSimulator extends Simulator {
         }
     }
 
-    _addControlsToMatrix (matrix, numPositiveControls, numNegativeControls) {
-        const numQubits =
-      numPositiveControls + numNegativeControls + Math.log2(matrix.m);
+    _addControlsToMatrix (matrix, positiveControls, negativeControls) {
+        const numQubits = positiveControls.length + negativeControls.length + Math.log2(matrix.m);
         const matrixSize = 2 ** numQubits;
         const newMatrix = new Matrix(matrixSize, matrixSize);
         newMatrix.makeIdentity();
         let currentColumn = 0;
-        for (let i = 0; i < matrix.m; i++) {
+        for (let i = 0; i < newMatrix.m; i++) {
             const bits = i.toString(2).padStart(numQubits, '0')
                 .split('')
+                .reverse()
                 .map(Number);
             let ignore = false;
-            for (let n = 0; n < numPositiveControls; n++) {
-                if (bits[n] === 0) {
+            for (let posI = 0; posI < positiveControls.length; posI++) {
+                if (bits[posI] === 0) {
                     ignore = true;
                     break;
                 }
             }
-            if (ignore) continue;
-            for (
-                let n = numPositiveControls;
-                n < numPositiveControls + numNegativeControls;
-                n++
-            ) {
-                if (bits[n] === 1) {
+            for (let negI = 0; negI < negativeControls.length; negI++) {
+                if (bits[negI + positiveControls.length] === 1) {
                     ignore = true;
                     break;
                 }
             }
             if (ignore) continue;
             let currentRow = 0;
-            for (let j = 0; j < matrix.n; j++) {
-                const newBits = bits.slice();
+            for (let j = 0; j < newMatrix.n; j++) {
+                const newBits = j.toString(2).padStart(numQubits, '0')
+                    .split('')
+                    .reverse()
+                    .map(Number);
                 ignore = false;
-                for (let n = 0; n < numPositiveControls; n++) {
-                    if (newBits[n] === 0) {
-                        ignore = true;
+                for (let posI = 0; posI < positiveControls.length; posI++) {
+                    if (newBits[posI] === 0) {
                         newMatrix.set(j, i, new Complex(0, 0));
+                        ignore = true;
                         break;
                     }
                 }
-                if (ignore) continue;
-                for (
-                    let n = numPositiveControls;
-                    n < numPositiveControls + numNegativeControls;
-                    n++
-                ) {
-                    if (bits[n] === 1) {
-                        ignore = true;
+                for (let negI = 0; negI < negativeControls.length; negI++) {
+                    if (newBits[negI + positiveControls.length] === 1) {
                         newMatrix.set(j, i, new Complex(0, 0));
+                        ignore = true;
                         break;
                     }
                 }
                 if (ignore) continue;
                 newMatrix.set(
-                    currentRow,
-                    currentColumn,
+                    j,
+                    i,
                     matrix.get(currentRow, currentColumn)
                 );
                 currentRow++;
@@ -469,6 +462,7 @@ class StatevectorSimulator extends Simulator {
                 .toString(2)
                 .padStart(this._getNumQubits(), '0')
                 .split('')
+                .reverse()
                 .map(Number);
             let newIndex = 0;
             for (let j = 0; j < indexList.length; j++) {
@@ -477,7 +471,7 @@ class StatevectorSimulator extends Simulator {
             return newIndex;
         };
 
-        const indexOfColumn = Object.fromEntries(indexList.map((_, i) => [i, i]));
+        const indexOfColumn = Object.fromEntries(fullMatrix.data.map((_, i) => [i, i]));
         for (let i = 0; i < fullMatrix.m; i++) {
             const newIndex = getIndex(i);
             const currentIndex = indexOfColumn[i];
@@ -497,8 +491,11 @@ class StatevectorSimulator extends Simulator {
     }
 
     _addQubits (size) {
+        const numQubits = Math.log2(this.statevector.n);
+        const qubitsMask = ((2 ** size) - 1) << numQubits;
+        const expectedState = (this.startingState & qubitsMask) >> numQubits;
         const newQubit = new Vector(2 ** size);
-        newQubit.set(0, new Complex(1, 0));
+        newQubit.setElement(expectedState, new Complex(1, 0));
         this.statevector = this.statevector.tensorProduct(newQubit);
         this._stateVectorToVector();
     }
@@ -508,9 +505,6 @@ class StatevectorSimulator extends Simulator {
         for (let i = 0; i < this.statevector.n; i++) {
             vector.setElement(i, this.statevector.get(i, 0));
         }
-        console.log(vector);
-        console.log(this.statevector);
-        console.log(this.statevector.data[0][0]);
         this.statevector = vector;
     }
 }

@@ -125,23 +125,6 @@ AST.parse = function (s) {
     return new AST(LeafNode.parse(s));
 };
 
-class EvaluationSettings {
-    static SimulatorType = {
-        STATEVECTOR: 'Statevector Simulator',
-        DECISION_DIAGRAM: 'Decision Diagram Simulator',
-        RESOURCE_ESTIMATOR: 'Resource Estimator'
-    };
-    static ArchitectureType = {
-        ALL_TO_ALL: 'All-to-All',
-        LINEAR: 'Linear Nearest Neighbor',
-        HEAVY_HEAVY: 'Heavy-Hex'
-    };
-    static NoiseModel = {
-        IDEAL: 'Ideal',
-        IID: 'i.i.d. Noise'
-    };
-}
-
 class QuantumExtension {
     constructor (runtime) {
         this.runtime = runtime;
@@ -312,43 +295,13 @@ class QuantumExtension {
                     text: 'Evaluate Quantum Circuits'
                 },
                 {
-                    opcode: 'evaluateCircuitsSimulator',
+                    opcode: 'evaluateCircuitsState',
                     blockType: BlockType.COMMAND,
-                    text: 'Evaluate Quantum Circuits using [SIMULATOR]',
+                    text: 'Evaluate Quantum Circuits starting from [STATE]',
                     arguments: {
-                        SIMULATOR: {
-                            type: ArgumentType.STRING,
-                            menu: 'simulators',
-                            defaultValue: 'Statevector Simulator'
-                        }
-                    }
-                },
-                {
-                    opcode: 'evaluateCircuitsNoise',
-                    blockType: BlockType.COMMAND,
-                    text: 'Evaluate Quantum Circuits with [NOISE_MODEL]',
-                    arguments: {
-                        NOISE_MODEL: {
-                            type: ArgumentType.STRING,
-                            menu: 'noiseModels',
-                            defaultValue: 'Ideal'
-                        }
-                    }
-                },
-                {
-                    opcode: 'evaluateCircuitsSimulatorNoise',
-                    blockType: BlockType.COMMAND,
-                    text: 'Evaluate Quantum Circuits with [SIMULATOR] and [NOISE_MODEL]',
-                    arguments: {
-                        SIMULATOR: {
-                            type: ArgumentType.STRING,
-                            menu: 'simulators',
-                            defaultValue: 'Statevector Simulator'
-                        },
-                        NOISE_MODEL: {
-                            type: ArgumentType.STRING,
-                            menu: 'noiseModels',
-                            defaultValue: 'Ideal'
+                        STATE: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: '0'
                         }
                     }
                 }
@@ -371,26 +324,6 @@ class QuantumExtension {
                         {text: 'X', value: 'X'},
                         {text: 'Y', value: 'Y'},
                         {text: 'Z', value: 'Z'}
-                    ]
-                },
-                simulators: {
-                    acceptReporters: true,
-                    items: [
-                        {
-                            text: EvaluationSettings.SimulatorType.STATEVECTOR,
-                            value: EvaluationSettings.SimulatorType.STATEVECTOR
-                        },
-                        {
-                            text: EvaluationSettings.SimulatorType.RESOURCE_ESTIMATOR,
-                            value: EvaluationSettings.SimulatorType.RESOURCE_ESTIMATOR
-                        }
-                    ]
-                },
-                noiseModels: {
-                    acceptReporters: true,
-                    items: [
-                        {text: EvaluationSettings.NoiseModel.IDEAL, value: EvaluationSettings.NoiseModel.IDEAL},
-                        {text: EvaluationSettings.NoiseModel.IID, value: EvaluationSettings.NoiseModel.IID}
                     ]
                 }
             }
@@ -539,50 +472,59 @@ class QuantumExtension {
     }
 
     controlled (args, util) {
-        const qubit = args.QUBIT;
-        if (qubit === '/') {
-            return doError('Invalid qubit value');
+        if (util.stackFrame.executedChild) {
+            delete util.stackFrame.executedChild;
+            this.getCurrentExecutionInformation(util).controlStack.pop();
+        } else {
+            util.stackFrame.executedChild = true;
+            const qubit = args.QUBIT;
+            if (qubit === '/') {
+                return doError('Invalid qubit value');
+            }
+            const parsedQubit = AST.parse(qubit);
+            this.getCurrentExecutionInformation(util).controlStack.push(parsedQubit);
+            util.startBranch(1, true);
         }
-        const parsedQubit = AST.parse(qubit);
-        this.getCurrentExecutionInformation(util).controlStack.push(parsedQubit);
-        util.startBranch(1, false);
-        this.getCurrentExecutionInformation(util).controlStack.pop();
     }
 
     quantumEvaluate () {
         return true;
     }
 
-    evaluateCircuits () {
-        this.genericEvaluateCircuits(EvaluationSettings.SimulatorType.STATEVECTOR, EvaluationSettings.NoiseModel.IDEAL);
+    evaluateCircuits (_args, util) {
+        this.genericEvaluateCircuits(0, util);
     }
 
-    evaluateCircuitsSimulator (args) {
-        this.genericEvaluateCircuits(args.SIMULATOR, EvaluationSettings.NoiseModel.IDEAL);
-    }
-
-    evaluateCircuitsNoise (args) {
-        this.genericEvaluateCircuits(EvaluationSettings.SimulatorType.STATEVECTOR, args.NOISE_MODEL);
-    }
-
-    evaluateCircuitsSimulatorNoise (args) {
-        this.genericEvaluateCircuits(args.SIMULATOR, args.NOISE_MODEL);
+    evaluateCircuitsState (args, util) {
+        this.genericEvaluateCircuits(args.STATE, util);
     }
 
     // eslint-disable-next-line no-unused-vars
-    genericEvaluateCircuits (_simulator, _noiseModel) {
-        const startedThreads = this.runtime.startHats('quantum_quantumEvaluate');
-        startedThreads.forEach(thread => {
-            const hatId = thread.topBlock;
-            console.log(`Evaluating circuit ${hatId}`);
-            this.circuits[hatId] = new CircuitExecutionInformation(new Simulator());
-        });
+    genericEvaluateCircuits (startingState, util) {
+        if (!util.stackFrame.executed) {
+            const startedThreads = util.startHats('quantum_quantumEvaluate');
+            util.stackFrame.startedThreads = startedThreads;
+            util.stackFrame.startedThreads.forEach(thread => {
+                const hatId = thread.topBlock;
+                this.circuits[hatId] = new CircuitExecutionInformation(new Simulator(startingState));
+            });
+            util.stackFrame.executed = true;
+            util.yield();
+            return;
+        }
+
+
+        const allFinished = util.stackFrame.startedThreads.every(t => this.runtime.threads.indexOf(t) === -1);
+        if (allFinished) {
+            delete util.stackFrame.startedThreads;
+            delete util.stackFrame.executed;
+        } else {
+            util.yield();
+        }
     }
 
     getCurrentExecutionInformation (util) {
         const hatId = util.thread.topBlock;
-        console.log(`Getting current settings for circuit ${util.thread.topBlock} (${this.circuits[hatId]})`);
-        console.log(this.circuits[hatId].simulationState);
         return this.circuits[hatId];
     }
 }
