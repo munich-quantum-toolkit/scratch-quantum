@@ -8,6 +8,7 @@ class Control {
 class Simulator {
     constructor (startingState) {
         this.startingState = startingState;
+        this.registers = [];
     }
 
     // eslint-disable-next-line no-unused-vars
@@ -36,7 +37,23 @@ class Simulator {
     }
 
     getResults () {
-        throw new Error('getResults method not implemented');
+        return '';
+    }
+
+    _accessToIndex (access) {
+        let index = 0;
+        for (const reg of this.registers) {
+            if (reg.name === access.register) {
+                index += access.index;
+                break;
+            }
+            index += reg.size;
+        }
+        return index;
+    }
+
+    _getNumQubits () {
+        return this.registers.reduce((sum, reg) => sum + reg.size, 0);
     }
 }
 

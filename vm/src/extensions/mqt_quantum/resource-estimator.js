@@ -13,24 +13,7 @@ class ResourceEstimator extends Simulator {
         super(0);
         this.settings = settings;
         this.qubits = [];
-        this.registers = [];
         this.gateUses = {};
-    }
-
-    _accessToIndex (access) {
-        let index = 0;
-        for (const reg of this.registers) {
-            if (reg.name === access.register) {
-                index += access.index;
-                break;
-            }
-            index += reg.size;
-        }
-        return index;
-    }
-
-    _getNumQubits () {
-        return this.registers.reduce((sum, reg) => sum + reg.size, 0);
     }
 
     _logSimplifiedGateUse (gate, targets) {
@@ -147,7 +130,7 @@ class ResourceEstimator extends Simulator {
 
     getResults () {
         const uses = this.gateUses;
-        let result = '';
+        let result = `Total Qubits: ${this._getNumQubits()}\n\n`;
         const gatesByTargetCount = Object.entries(uses).reduce((acc, [gate, targets]) => {
             const targetCount = targets.length;
             if (!acc[targetCount]) {
