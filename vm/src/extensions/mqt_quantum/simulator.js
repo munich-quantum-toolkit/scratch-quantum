@@ -34,6 +34,10 @@ class Simulator {
     setStartingState (state) {
         throw new Error('setStartingState method not implemented');
     }
+
+    getResults () {
+        throw new Error('getResults method not implemented');
+    }
 }
 
 export {Simulator, Control};

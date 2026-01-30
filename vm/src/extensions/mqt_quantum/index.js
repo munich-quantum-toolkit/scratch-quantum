@@ -1,6 +1,7 @@
 const ArgumentType = require('../../extension-support/argument-type');
 const BlockType = require('../../extension-support/block-type');
-const Simulator = require('./statevector-simulator').default;
+const StatevectorSimulator = require('./statevector-simulator').default;
+const {ResourceEstimator, ResourceEstimatorSettings} = require('./resource-estimator');
 
 const doError = function (message) {
     console.error(message);
@@ -280,7 +281,7 @@ class QuantumExtension {
                 {
                     opcode: 'evaluateLabel',
                     blockType: BlockType.BUTTON,
-                    text: 'Circuit Evaluation'
+                    text: 'Circuit Execution'
                 },
 
                 {
@@ -290,18 +291,57 @@ class QuantumExtension {
                     isEdgeActivated: false
                 },
                 {
-                    opcode: 'evaluateCircuits',
+                    opcode: 'runCircuits',
                     blockType: BlockType.COMMAND,
-                    text: 'Evaluate Quantum Circuits'
+                    text: 'Run Quantum Circuits'
                 },
                 {
-                    opcode: 'evaluateCircuitsState',
+                    opcode: 'runCircuitsState',
                     blockType: BlockType.COMMAND,
-                    text: 'Evaluate Quantum Circuits starting from [STATE]',
+                    text: 'Run Quantum Circuits starting from [STATE]',
                     arguments: {
                         STATE: {
                             type: ArgumentType.NUMBER,
                             defaultValue: '0'
+                        }
+                    }
+                },
+                {
+                    opcode: 'resourceEstimationLabel',
+                    blockType: BlockType.BUTTON,
+                    text: 'Resource Estimation'
+                },
+                {
+                    opcode: 'estimateCircuitsResources',
+                    blockType: BlockType.COMMAND,
+                    text: 'Perform Quantum Resource Estimation'
+                },
+                {
+                    opcode: 'estimatedCircuitsResources',
+                    blockType: BlockType.REPORTER,
+                    text: 'Estimated Quantum Resources'
+                },
+                {
+                    opcode: 'enableDisableNegativeControlTranslation',
+                    blockType: BlockType.COMMAND,
+                    text: '[ENABLED] substitute negative control lines',
+                    arguments: {
+                        ENABLED: {
+                            type: ArgumentType.BOOLEAN,
+                            defaultValue: 'true',
+                            menu: 'enable'
+                        }
+                    }
+                },
+                {
+                    opcode: 'enableDisableToffoliDecomposition',
+                    blockType: BlockType.COMMAND,
+                    text: '[ENABLED] Toffoli decomposition',
+                    arguments: {
+                        ENABLED: {
+                            type: ArgumentType.BOOLEAN,
+                            defaultValue: 'true',
+                            menu: 'enable'
                         }
                     }
                 }
@@ -324,6 +364,12 @@ class QuantumExtension {
                         {text: 'X', value: 'X'},
                         {text: 'Y', value: 'Y'},
                         {text: 'Z', value: 'Z'}
+                    ]
+                },
+                enable: {
+                    items: [
+                        {text: 'Enable', value: 'true'},
+                        {text: 'Disable', value: 'false'}
                     ]
                 }
             }
@@ -491,40 +537,94 @@ class QuantumExtension {
         return true;
     }
 
-    evaluateCircuits (_args, util) {
-        this.genericEvaluateCircuits(0, util);
+    runCircuits (_args, util) {
+        this.genericRunCircuits(util, StatevectorSimulator, 0);
     }
 
-    evaluateCircuitsState (args, util) {
-        this.genericEvaluateCircuits(args.STATE, util);
+    runCircuitsState (args, util) {
+        this.genericRunCircuits(util, StatevectorSimulator, args.STATE);
+    }
+
+    estimatedCircuitsResources () {
+        if (!this.runtime) {
+            return Promise.resolve('No Runtime');
+        }
+        if (!this.runtime.lastResourceEstimate) {
+            return Promise.resolve('No Resource Estimate computed yet');
+        }
+        return this.runtime.lastResourceEstimate;
+    }
+
+    estimateCircuitsResources (_args, util) {
+        const result = this.genericRunCircuits(util, ResourceEstimator, new ResourceEstimatorSettings(
+            this.getRENegativeControlTranslationEnabled(util),
+            this.getREToffoliDecompositionEnabled(util)
+        ));
+        if (result !== '') {
+            this.runtime.lastResourceEstimate = result;
+        }
     }
 
     // eslint-disable-next-line no-unused-vars
-    genericEvaluateCircuits (startingState, util) {
+    genericRunCircuits (util, simulatorClass, simulatorArgs) {
         if (!util.stackFrame.executed) {
             const startedThreads = util.startHats('quantum_quantumEvaluate');
             util.stackFrame.startedThreads = startedThreads;
             util.stackFrame.startedThreads.forEach(thread => {
                 const hatId = thread.topBlock;
-                this.circuits[hatId] = new CircuitExecutionInformation(new Simulator(startingState));
+                this.circuits[hatId] = new CircuitExecutionInformation(new simulatorClass(simulatorArgs));
             });
             util.stackFrame.executed = true;
             util.yield();
-            return;
+            return '';
         }
 
 
         const allFinished = util.stackFrame.startedThreads.every(t => this.runtime.threads.indexOf(t) === -1);
         if (allFinished) {
+            const result = util.stackFrame.startedThreads
+                .map(t => this.circuits[t.topBlock].simulationState.getResults().toString())
+                .join('');
             delete util.stackFrame.startedThreads;
             delete util.stackFrame.executed;
-        } else {
-            util.yield();
+            return result;
         }
+        util.yield();
+        return '';
+
+    }
+
+    enableDisableNegativeControlTranslation (args, util) {
+        const enabled = args.ENABLED === 'true';
+        this.setRENegativeControlTranslationEnabled(util, enabled);
+    }
+
+    enableDisableToffoliDecomposition (args, util) {
+        const enabled = args.ENABLED === 'true';
+        this.setREToffoliDecompositionEnabled(util, enabled);
+    }
+
+    getRENegativeControlTranslationEnabled (util) {
+        return !util.thread.reDisableNegativeControlTranslation;
+    }
+
+    getREToffoliDecompositionEnabled (util) {
+        return !util.thread.reDisableToffoliDecomposition;
+    }
+
+    setRENegativeControlTranslationEnabled (util, value) {
+        util.thread.reDisableNegativeControlTranslation = !value;
+    }
+
+    setREToffoliDecompositionEnabled (util, value) {
+        util.thread.reDisableToffoliDecomposition = !value;
     }
 
     getCurrentExecutionInformation (util) {
         const hatId = util.thread.topBlock;
+        if (!this.circuits[hatId]) {
+            this.circuits[hatId] = new CircuitExecutionInformation(new StatevectorSimulator(0));
+        }
         return this.circuits[hatId];
     }
 }

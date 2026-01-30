@@ -507,6 +507,10 @@ class StatevectorSimulator extends Simulator {
         }
         this.statevector = vector;
     }
+
+    getResults () {
+        return '';
+    }
 }
 
 export default StatevectorSimulator;
