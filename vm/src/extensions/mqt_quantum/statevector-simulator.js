@@ -38,8 +38,8 @@ class StatevectorSimulator extends Simulator {
             internalReg.name = name;
             if (internalReg.size < size) {
                 // increase internal register size
-                this._addQubits(size - internalReg.size);
-                internalReg.size = size;
+                const res = this._addQubits(size - internalReg.size);
+                internalReg.size += res;
             }
             return true;
         }
@@ -47,19 +47,23 @@ class StatevectorSimulator extends Simulator {
 
     createRegister (name, size) {
         if (!this._reduceStartingState(name, size)) {
-            this.registers.push(new Register(name, size));
-            this._addQubits(size);
+            const reg = new Register(name, size);
+            reg.size = this._addQubits(size);
+            this.registers.push(reg);
         }
     }
 
     applyGate (gate, targets, positiveControls, negativeControls) {
-        const accesses = targets.map(x => this._accessToIndex(targetAccess(x)));
+        const accesses = targets.map(x => this._accessToIndex(targetAccess(x)))
+            .filter(v => v < this._getNumQubits());
+        if (accesses.length === 0) return;
+
         const positiveControlAccesses = positiveControls.map(x =>
             this._accessToIndex(targetAccess(x))
-        );
+        ).filter(v => v < this._getNumQubits());
         const negativeControlAccesses = negativeControls.map(x =>
             this._accessToIndex(targetAccess(x))
-        );
+        ).filter(v => v < this._getNumQubits());
 
         let matrix = this._getGateMatrix(gate);
         matrix = this._addControlsToMatrix(
@@ -75,13 +79,16 @@ class StatevectorSimulator extends Simulator {
     }
 
     applyRotation (axis, angle, targets, positiveControls, negativeControls) {
-        const accesses = targets.map(x => this._accessToIndex(targetAccess(x)));
+        const accesses = targets.map(x => this._accessToIndex(targetAccess(x)))
+            .filter(v => v < this._getNumQubits());
+        if (accesses.length === 0) return;
+
         const positiveControlAccesses = positiveControls.map(x =>
             this._accessToIndex(targetAccess(x))
-        );
+        ).filter(v => v < this._getNumQubits());
         const negativeControlAccesses = negativeControls.map(x =>
             this._accessToIndex(targetAccess(x))
-        );
+        ).filter(v => v < this._getNumQubits());
 
         let matrix = this._getParametrizedGateMatrix(`r${axis}`, angle);
         matrix = this._addControlsToMatrix(
@@ -98,6 +105,7 @@ class StatevectorSimulator extends Simulator {
 
     measure (qubit) {
         const access = this._accessToIndex(targetAccess(qubit));
+        if (access >= this._getNumQubits()) return;
         let probability = 0;
         for (let i = 0; i < this.statevector.n; i++) {
             const bits = i
@@ -330,12 +338,16 @@ class StatevectorSimulator extends Simulator {
 
     _addQubits (size) {
         const numQubits = Math.log2(this.statevector.n);
-        const qubitsMask = ((2 ** size) - 1) << numQubits;
-        const expectedState = (this.startingState & qubitsMask) >> numQubits;
+        if (numQubits + size >= 14) {
+            error('Statevector too large to simulate');
+            size = 13 - numQubits;
+            if (size <= 0) return 0;
+        }
         const newQubit = new Vector(2 ** size);
-        newQubit.setElement(expectedState, new Complex(1, 0));
+        newQubit.setElement(0, new Complex(1, 0));
         this.statevector = this.statevector.tensorProduct(newQubit);
         this._stateVectorToVector();
+        return size;
     }
 
     _stateVectorToVector () {
