@@ -2,17 +2,54 @@ import {Simulator} from './simulator';
 import {Register, targetAccess, error} from './utils';
 import {Vector, Matrix, Complex} from './complex-math';
 
+const INTERNAL_STARTING_REGISTER = '~~internal_init';
+
 
 class StatevectorSimulator extends Simulator {
     constructor (startingState) {
         super(startingState);
         this.statevector = new Vector(1);
         this.statevector.setElement(0, new Complex(1, 0));
+        if (startingState !== 0) {
+            this._setupStartingState();
+        }
+    }
+
+    _setupStartingState () {
+        const numQubits = Math.ceil(Math.log2(this.startingState + 1));
+        this.createRegister(INTERNAL_STARTING_REGISTER, numQubits);
+        this.statevector.setElement(0, new Complex(0, 0));
+        this.statevector.setElement(this.startingState, new Complex(1, 0));
+    }
+
+    _reduceStartingState (name, size) {
+        const internalRegIndex = this.registers.findIndex(reg => reg.name === INTERNAL_STARTING_REGISTER);
+        if (internalRegIndex === -1) return false;
+        const internalReg = this.registers[internalRegIndex];
+
+        if (internalReg.size > size) {
+            // insert new register before internal register
+            this.registers.splice(internalRegIndex, 0, new Register(name, size));
+            // reduce internal register size
+            internalReg.size -= size;
+            return true;
+        } else {
+            // rename internal register
+            internalReg.name = name;
+            if (internalReg.size < size) {
+                // increase internal register size
+                this._addQubits(size - internalReg.size);
+                internalReg.size = size;
+            }
+            return true;
+        }
     }
 
     createRegister (name, size) {
-        this.registers.push(new Register(name, size));
-        this._addQubits(size);
+        if (!this._reduceStartingState(name, size)) {
+            this.registers.push(new Register(name, size));
+            this._addQubits(size);
+        }
     }
 
     applyGate (gate, targets, positiveControls, negativeControls) {
@@ -131,6 +168,12 @@ class StatevectorSimulator extends Simulator {
                 .set(0, 1, new Complex(0, 0))
                 .set(1, 0, new Complex(0, 0))
                 .set(1, 1, new Complex(Math.cos(Math.PI / 8), Math.sin(Math.PI / 8)));
+        case 'SWAP':
+            return new Matrix(4, 4)
+                .set(0, 0, new Complex(1, 0))
+                .set(1, 2, new Complex(1, 0))
+                .set(2, 1, new Complex(1, 0))
+                .set(3, 3, new Complex(1, 0))
         default:
             error(`Unknown gate: ${gate}`);
             return null;
@@ -274,6 +317,7 @@ class StatevectorSimulator extends Simulator {
 
             if (newIndex === i) continue;
             fullMatrix.swapColumns(currentIndex, newIndex);
+            fullMatrix.swapRows(currentIndex, newIndex);
         }
 
         this._applyMatrix(fullMatrix);

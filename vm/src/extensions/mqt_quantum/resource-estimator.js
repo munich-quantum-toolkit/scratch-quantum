@@ -2,9 +2,10 @@ import {Simulator} from './simulator';
 import {Register, targetAccess} from './utils';
 
 class ResourceEstimatorSettings {
-    constructor (negativeControlTranslation, toffoliDecomposition) {
+    constructor (negativeControlTranslation, toffoliDecomposition, swapDecomposition) {
         this.negativeControlTranslation = negativeControlTranslation;
         this.toffoliDecomposition = toffoliDecomposition;
+        this.swapDecomposition = swapDecomposition;
     }
 }
 
@@ -52,6 +53,10 @@ class ResourceEstimator extends Simulator {
                 this._logDecomposedCCX(controls[i], controls[i + 1], -i - 1);
             }
             this._logPosGateUse(gate, [-requiredAncillas], targets);
+        } else if (this.settings.swapDecomposition && gate === 'SWAP') {
+            this._logPosGateUse('X', [...controls, targets[0]], [targets[1]]);
+            this._logPosGateUse('X', [...controls, targets[1]], [targets[0]]);
+            this._logPosGateUse('X', [...controls, targets[0]], [targets[1]]);
         } else {
             this._logSimplifiedGateUse('C'.repeat(controls.length) + gate, [...controls, ...targets]);
         }
@@ -119,6 +124,20 @@ class ResourceEstimator extends Simulator {
                 // eslint-disable-next-line no-unused-vars
                 _ok => {
                     this.qubits[accesses[0]] = null;
+                });
+        }
+        if (gate === 'SWAP') {
+            this._doGate(positiveControlAccesses, negativeControlAccesses,
+                // eslint-disable-next-line no-unused-vars
+                ok => {
+                    if (ok === false) {
+                        this.qubits[accesses[0]] = null;
+                        this.qubits[accesses[1]] = null;
+                        return;
+                    }
+                    const temp = this.qubits[accesses[0]];
+                    this.qubits[accesses[0]] = this.qubits[accesses[1]];
+                    this.qubits[accesses[1]] = temp;
                 });
         }
 

@@ -135,6 +135,14 @@ class Matrix {
         }
     }
 
+    swapRows (i, j) {
+        for (let k = 0; k < this.m; k++) {
+            const temp = this.get(i, k);
+            this.set(i, k, this.get(j, k));
+            this.set(j, k, temp);
+        }
+    }
+
     makeIdentity () {
         for (let i = 0; i < this.n; i++) {
             this.set(i, i, new Complex(1, 0));

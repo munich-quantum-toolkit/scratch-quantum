@@ -31,11 +31,6 @@ class Simulator {
         throw new Error('measure method not implemented');
     }
 
-    // eslint-disable-next-line no-unused-vars
-    setStartingState (state) {
-        throw new Error('setStartingState method not implemented');
-    }
-
     getResults () {
         return '';
     }

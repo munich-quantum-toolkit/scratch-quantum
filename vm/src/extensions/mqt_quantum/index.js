@@ -10,9 +10,7 @@ const error = function (message) {
 /*
 TODOS
 
-- SWAP gate
 - test initial state when changes happen
-    - toffoli decomposition RE
 */
 
 const validateRegisterName = function (name) {
@@ -195,6 +193,21 @@ class QuantumExtension {
                     }
                 },
                 {
+                    opcode: 'swapGate',
+                    blockType: BlockType.COMMAND,
+                    text: 'apply SWAP gate to [QUBIT1] and [QUBIT2]',
+                    arguments: {
+                        QUBIT1: {
+                            type: ArgumentType.STRING,
+                            defaultValue: '/'
+                        },
+                        QUBIT2: {
+                            type: ArgumentType.STRING,
+                            defaultValue: '/'
+                        }
+                    }
+                },
+                {
                     opcode: 'controlled',
                     blockType: BlockType.CONDITIONAL,
                     branchCount: 1,
@@ -330,6 +343,18 @@ class QuantumExtension {
                     text: 'Estimated Quantum Resources'
                 },
                 {
+                    opcode: 'enableDisableSwapDecomposition',
+                    blockType: BlockType.COMMAND,
+                    text: '[ENABLED] SWAP decomposition',
+                    arguments: {
+                        ENABLED: {
+                            type: ArgumentType.BOOLEAN,
+                            defaultValue: 'true',
+                            menu: 'enable'
+                        }
+                    }
+                },
+                {
                     opcode: 'enableDisableNegativeControlTranslation',
                     blockType: BlockType.COMMAND,
                     text: '[ENABLED] substitute negative control lines',
@@ -462,6 +487,27 @@ class QuantumExtension {
 
     }
 
+    swapGate (args, util) {
+        const qubit1 = args.QUBIT1;
+        const qubit2 = args.QUBIT2;
+        if (qubit1 === '/' || qubit2 === '/') {
+            return error('Invalid qubit value');
+        }
+        const parsedQubit1 = AST.parse(qubit1).root;
+        const parsedQubit2 = AST.parse(qubit2).root;
+
+        if (!(parsedQubit1 instanceof LeafNode) || !(parsedQubit2 instanceof LeafNode)) {
+            return error('Invalid qubit value');
+        }
+
+        const [posControls, negControls] = this.getCurrentControls(
+            this.getCurrentExecutionInformation(util).controlStack
+        );
+        this.getCurrentExecutionInformation(util).simulationState.applyGate(
+            'SWAP', [parsedQubit1, parsedQubit2], posControls, negControls
+        );
+    }
+
     rotateAxis (args, util) {
         const qubit = args.QUBIT;
         const angle = parseFloat(args.ANGLE);
@@ -566,7 +612,8 @@ class QuantumExtension {
     estimateCircuitsResources (_args, util) {
         const result = this.genericRunCircuits(util, ResourceEstimator, new ResourceEstimatorSettings(
             this.getRENegativeControlTranslationEnabled(util),
-            this.getREToffoliDecompositionEnabled(util)
+            this.getREToffoliDecompositionEnabled(util),
+            this.getRESwapDecompositionEnabled(util)
         ));
         if (result !== '') {
             this.runtime.lastResourceEstimate = result;
@@ -612,20 +659,33 @@ class QuantumExtension {
         this.setREToffoliDecompositionEnabled(util, enabled);
     }
 
+    enableDisableSwapDecomposition (args, util) {
+        const enabled = args.ENABLED === 'true';
+        this.setRESwapDecompositionEnabled(util, enabled);
+    }
+
     getRENegativeControlTranslationEnabled (util) {
-        return !util.thread.reDisableNegativeControlTranslation;
+        return util.thread.reEnagleNegativeControlTranslation;
     }
 
     getREToffoliDecompositionEnabled (util) {
-        return !util.thread.reDisableToffoliDecomposition;
+        return util.thread.reEnagleToffoliDecomposition;
     }
 
     setRENegativeControlTranslationEnabled (util, value) {
-        util.thread.reDisableNegativeControlTranslation = !value;
+        util.thread.reEnagleNegativeControlTranslation = value;
     }
 
     setREToffoliDecompositionEnabled (util, value) {
-        util.thread.reDisableToffoliDecomposition = !value;
+        util.thread.reEnagleToffoliDecomposition = value;
+    }
+
+    getRESwapDecompositionEnabled (util) {
+        return util.thread.reEnagleSwapDecomposition;
+    }
+
+    setRESwapDecompositionEnabled (util, value) {
+        util.thread.reEnagleSwapDecomposition = value;
     }
 
     getCurrentExecutionInformation (util) {
