@@ -14,6 +14,7 @@ class ResourceEstimator extends Simulator {
         this.settings = settings;
         this.qubits = [];
         this.gateUses = {};
+        this.ancillas = 0;
     }
 
     _logSimplifiedGateUse (gate, targets) {
@@ -23,8 +24,37 @@ class ResourceEstimator extends Simulator {
         this.gateUses[gate].push(targets);
     }
 
+    _logDecomposedCCX (c1, c2, target) {
+        this._logSimplifiedGateUse('H', [target]);
+        this._logSimplifiedGateUse('CX', [c2, target]);
+        this._logSimplifiedGateUse('T†', [target]);
+        this._logSimplifiedGateUse('CX', [c1, target]);
+        this._logSimplifiedGateUse('T', [target]);
+        this._logSimplifiedGateUse('CX', [c2, target]);
+        this._logSimplifiedGateUse('T†', [target]);
+        this._logSimplifiedGateUse('CX', [c1, target]);
+        this._logSimplifiedGateUse('T', [target]);
+        this._logSimplifiedGateUse('T†', [c2]);
+        this._logSimplifiedGateUse('H', [target]);
+        this._logSimplifiedGateUse('CX', [c1, c2]);
+        this._logSimplifiedGateUse('T†', [c2]);
+        this._logSimplifiedGateUse('CX', [c1, c2]);
+        this._logSimplifiedGateUse('T', [c1]);
+        this._logSimplifiedGateUse('S', [c2]);
+    }
+
     _logPosGateUse (gate, controls, targets) {
-        this._logSimplifiedGateUse('C'.repeat(controls.length) + gate, [...controls, ...targets]);
+        if (this.settings.toffoliDecomposition && controls.length > 1) {
+            const requiredAncillas = controls.length - 1;
+            this.ancillas = Math.max(this.ancillas, requiredAncillas);
+            for (let i = 0; i < requiredAncillas; i++) {
+                this._logDecomposedCCX(controls[i], controls[i + 1], -i - 1);
+                this._logDecomposedCCX(controls[i], controls[i + 1], -i - 1);
+            }
+            this._logPosGateUse(gate, [-requiredAncillas], targets);
+        } else {
+            this._logSimplifiedGateUse('C'.repeat(controls.length) + gate, [...controls, ...targets]);
+        }
     }
 
     _logGateUse (gate, positiveControls, negativeControls, targets) {
@@ -130,9 +160,12 @@ class ResourceEstimator extends Simulator {
 
     getResults () {
         const uses = this.gateUses;
-        let result = `Total Qubits: ${this._getNumQubits()}\n\n`;
+        let result = `Total Qubits: ${this._getNumQubits() + this.ancillas}\n\n`;
         const gatesByTargetCount = Object.entries(uses).reduce((acc, [gate, targets]) => {
-            const targetCount = targets.length;
+            if (targets.length === 0) {
+                return acc;
+            }
+            const targetCount = targets[0].length;
             if (!acc[targetCount]) {
                 acc[targetCount] = [];
             }

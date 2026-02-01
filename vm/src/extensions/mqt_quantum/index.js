@@ -3,16 +3,24 @@ const BlockType = require('../../extension-support/block-type');
 const StatevectorSimulator = require('./statevector-simulator').default;
 const {ResourceEstimator, ResourceEstimatorSettings} = require('./resource-estimator');
 
-const doError = function (message) {
+const error = function (message) {
     console.error(message);
 };
 
+/*
+TODOS
+
+- SWAP gate
+- test initial state when changes happen
+    - toffoli decomposition RE
+*/
+
 const validateRegisterName = function (name) {
     if (name.length === 0) {
-        return doError('Register name cannot be empty');
+        return error('Register name cannot be empty');
     }
     if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) {
-        return doError(
+        return error(
             'Register name can only contain letters, numbers,' +
            'and underscores, and must start with a letter or underscore'
         );
@@ -22,7 +30,7 @@ const validateRegisterName = function (name) {
 const validateQubitIndex = function (index) {
     index = parseInt(`${index}`, 10);
     if (isNaN(index) || index < 0) {
-        return doError('Qubit index must be a non-negative integer');
+        return error('Qubit index must be a non-negative integer');
     }
     return index;
 };
@@ -98,11 +106,11 @@ class LeafNode {
     validate () {
         const qubit = this.value;
         if (qubit === null || typeof qubit !== 'string') {
-            return doError('Invalid qubit value');
+            return error('Invalid qubit value');
         }
         const parts = qubit.split('[');
         if (parts.length !== 2) {
-            return doError('Invalid qubit format, expected "register[index]"');
+            return error('Invalid qubit format, expected "register[index]"');
         }
         const register = parts[0].trim();
         const index = parts[1].trim().replace(']', '');
@@ -381,7 +389,7 @@ class QuantumExtension {
         const numQubits = parseInt(args.NUM, 10);
         validateRegisterName(registerName);
         if (numQubits === 0) {
-            return doError('Number of qubits must be greater than 0');
+            return error('Number of qubits must be greater than 0');
         }
         validateQubitIndex(numQubits);
         this.getCurrentExecutionInformation(util).simulationState.createRegister(registerName, numQubits);
@@ -418,7 +426,7 @@ class QuantumExtension {
             return child.value.value;
         }
         if (child instanceof AndNode) {
-            return doError('Invalid negated expression');
+            return error('Invalid negated expression');
         }
         return `not ${qubit}`;
     }
@@ -438,12 +446,12 @@ class QuantumExtension {
         const gate = args.GATE;
         const qubit = args.QUBIT;
         if (qubit === '/') {
-            return doError('Invalid qubit value');
+            return error('Invalid qubit value');
         }
         const parsedQubit = AST.parse(qubit).root;
 
         if (!(parsedQubit instanceof LeafNode)) {
-            return doError('Invalid qubit value');
+            return error('Invalid qubit value');
         }
         const [posControls, negControls] = this.getCurrentControls(
             this.getCurrentExecutionInformation(util).controlStack
@@ -459,13 +467,13 @@ class QuantumExtension {
         const angle = parseFloat(args.ANGLE);
         const axis = args.AXIS;
         if (qubit === '/') {
-            return doError('Invalid qubit value');
+            return error('Invalid qubit value');
         }
         const parsedQubit = AST.parse(qubit).root;
         const angleInRadians = angle * (Math.PI / 180);
 
         if (!(parsedQubit instanceof LeafNode)) {
-            return doError('Invalid qubit value');
+            return error('Invalid qubit value');
         }
         const [posControls, negControls] = this.getCurrentControls(
             this.getCurrentExecutionInformation(util).controlStack
@@ -482,7 +490,7 @@ class QuantumExtension {
         const anglePhi = parseFloat(args.PHI);
         const angleLambda = parseFloat(args.LAMBDA);
         if (qubit === '/') {
-            return doError('Invalid qubit value');
+            return error('Invalid qubit value');
         }
         const parsedQubit = AST.parse(qubit).root;
         const angleThetaInRadians = angleTheta * (Math.PI / 180);
@@ -490,7 +498,7 @@ class QuantumExtension {
         const angleLambdaInRadians = angleLambda * (Math.PI / 180);
 
         if (!(parsedQubit instanceof LeafNode)) {
-            return doError('Invalid qubit value');
+            return error('Invalid qubit value');
         }
         this.getCurrentExecutionInformation(util).simulationState.applyRotation(
             'Z', angleLambdaInRadians, [parsedQubit], []
@@ -507,11 +515,11 @@ class QuantumExtension {
     measure (args, util) {
         const qubit = args.QUBIT;
         if (qubit === '/') {
-            return doError('Invalid qubit value');
+            return error('Invalid qubit value');
         }
         const parsedQubit = AST.parse(qubit).root;
         if (!(parsedQubit instanceof LeafNode)) {
-            return doError('Invalid qubit value');
+            return error('Invalid qubit value');
         }
         return this.getCurrentExecutionInformation(util).simulationState.measure(parsedQubit);
 
@@ -525,7 +533,7 @@ class QuantumExtension {
             util.stackFrame.executedChild = true;
             const qubit = args.QUBIT;
             if (qubit === '/') {
-                return doError('Invalid qubit value');
+                return error('Invalid qubit value');
             }
             const parsedQubit = AST.parse(qubit);
             this.getCurrentExecutionInformation(util).controlStack.push(parsedQubit);
