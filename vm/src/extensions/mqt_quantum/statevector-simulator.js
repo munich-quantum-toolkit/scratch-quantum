@@ -33,16 +33,16 @@ class StatevectorSimulator extends Simulator {
             // reduce internal register size
             internalReg.size -= size;
             return true;
-        } else {
-            // rename internal register
-            internalReg.name = name;
-            if (internalReg.size < size) {
-                // increase internal register size
-                const res = this._addQubits(size - internalReg.size);
-                internalReg.size += res;
-            }
-            return true;
         }
+
+        // rename internal register
+        internalReg.name = name;
+        if (internalReg.size < size) {
+            // increase internal register size
+            const res = this._addQubits(size - internalReg.size);
+            internalReg.size += res;
+        }
+        return true;
     }
 
     createRegister (name, size) {
@@ -181,7 +181,7 @@ class StatevectorSimulator extends Simulator {
                 .set(0, 0, new Complex(1, 0))
                 .set(1, 2, new Complex(1, 0))
                 .set(2, 1, new Complex(1, 0))
-                .set(3, 3, new Complex(1, 0))
+                .set(3, 3, new Complex(1, 0));
         default:
             error(`Unknown gate: ${gate}`);
             return null;
