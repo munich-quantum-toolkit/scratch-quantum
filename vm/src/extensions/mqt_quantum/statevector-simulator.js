@@ -3,7 +3,7 @@ import {Register, targetAccess, error} from './utils';
 import {Vector, Matrix, Complex} from './complex-math';
 
 const INTERNAL_STARTING_REGISTER = '~~internal_init';
-
+const MAX_QUBITS = 10;
 
 class StatevectorSimulator extends Simulator {
     constructor (startingState) {
@@ -316,16 +316,24 @@ class StatevectorSimulator extends Simulator {
             return newIndex;
         };
 
-        const indexOfColumn = Object.fromEntries(fullMatrix.data.map((_, i) => [i, i]));
+        const currentLayout = Object.fromEntries(fullMatrix.data.map((_, i) => [i, i]));
+        const desiredIndices = {};
         for (let i = 0; i < fullMatrix.m; i++) {
             const newIndex = getIndex(i);
-            const currentIndex = indexOfColumn[i];
-            indexOfColumn[i] = newIndex;
-            indexOfColumn[indexOfColumn[newIndex]] = currentIndex;
+            desiredIndices[newIndex] = i;
+        }
+        for (let i = 0; i < fullMatrix.m; i++) {
+            // eslint-disable-next-line no-constant-condition
+            while (true) {
+                const originalId = currentLayout[i];
+                const targetIndex = desiredIndices[originalId];
+                if (targetIndex === i) break;
+                fullMatrix.swapColumns(i, targetIndex);
+                fullMatrix.swapRows(i, targetIndex);
+                currentLayout[i] = currentLayout[targetIndex];
+                currentLayout[targetIndex] = originalId;
+            }
 
-            if (newIndex === i) continue;
-            fullMatrix.swapColumns(currentIndex, newIndex);
-            fullMatrix.swapRows(currentIndex, newIndex);
         }
 
         this._applyMatrix(fullMatrix);
@@ -338,9 +346,9 @@ class StatevectorSimulator extends Simulator {
 
     _addQubits (size) {
         const numQubits = Math.log2(this.statevector.n);
-        if (numQubits + size >= 14) {
+        if (numQubits + size > MAX_QUBITS + 1) {
             error('Statevector too large to simulate');
-            size = 13 - numQubits;
+            size = MAX_QUBITS - numQubits;
             if (size <= 0) return 0;
         }
         const newQubit = new Vector(2 ** size);

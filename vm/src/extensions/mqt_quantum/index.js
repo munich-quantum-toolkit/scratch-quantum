@@ -138,7 +138,7 @@ class QuantumExtension {
         this.name = 'Quantum';
         this.version = '1.0.0';
         this.description = 'An extension for quantum computing simulations.';
-        this.circuits = {};
+        this.circuits = new WeakMap();
     }
 
     getInfo () {
@@ -626,8 +626,7 @@ class QuantumExtension {
             const startedThreads = util.startHats('quantum_quantumEvaluate');
             util.stackFrame.startedThreads = startedThreads;
             util.stackFrame.startedThreads.forEach(thread => {
-                const hatId = thread.topBlock;
-                this.circuits[hatId] = new CircuitExecutionInformation(new simulatorClass(simulatorArgs));
+                this.circuits.set(thread, new CircuitExecutionInformation(new simulatorClass(simulatorArgs)));
             });
             util.stackFrame.executed = true;
             util.yield();
@@ -638,7 +637,7 @@ class QuantumExtension {
         const allFinished = util.stackFrame.startedThreads.every(t => this.runtime.threads.indexOf(t) === -1);
         if (allFinished) {
             const result = util.stackFrame.startedThreads
-                .map(t => this.circuits[t.topBlock].simulationState.getResults().toString())
+                .map(t => this.circuits.get(t).simulationState.getResults().toString())
                 .join('');
             delete util.stackFrame.startedThreads;
             delete util.stackFrame.executed;
@@ -689,11 +688,11 @@ class QuantumExtension {
     }
 
     getCurrentExecutionInformation (util) {
-        const hatId = util.thread.topBlock;
-        if (!this.circuits[hatId]) {
-            this.circuits[hatId] = new CircuitExecutionInformation(new StatevectorSimulator(0));
+        const thread = util.thread;
+        if (!this.circuits.get(thread)) {
+            this.circuits.set(thread, new CircuitExecutionInformation(new StatevectorSimulator(0)));
         }
-        return this.circuits[hatId];
+        return this.circuits.get(thread);
     }
 }
 
