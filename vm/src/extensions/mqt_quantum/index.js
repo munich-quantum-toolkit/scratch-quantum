@@ -145,10 +145,13 @@ class QuantumExtension {
         return {
             id: 'quantum',
             name: this.name,
+            color1: '#0065bd',
+            color2: '#005293',
             blocks: [
                 {
                     opcode: 'createRegister',
                     blockType: BlockType.COMMAND,
+                    color: '#003359',
                     text: 'create quantum register [NAME] with [NUM] qubits',
                     arguments: {
                         NAME: {
@@ -164,6 +167,7 @@ class QuantumExtension {
                 {
                     opcode: 'getQubit',
                     blockType: BlockType.REPORTER,
+                    color: '#003359',
                     text: 'qubit [QUBIT] of register [NAME]',
                     arguments: {
                         QUBIT: {
@@ -176,6 +180,7 @@ class QuantumExtension {
                         }
                     }
                 },
+                "---",
                 {
                     opcode: 'applyGate',
                     blockType: BlockType.COMMAND,
@@ -207,10 +212,12 @@ class QuantumExtension {
                         }
                     }
                 },
+                "---",
                 {
                     opcode: 'controlled',
                     blockType: BlockType.CONDITIONAL,
                     branchCount: 1,
+                    color: '#64a0c8',
                     text: 'controlled on [QUBIT]',
                     arguments: {
                         QUBIT: {
@@ -222,6 +229,7 @@ class QuantumExtension {
                 {
                     opcode: 'and',
                     blockType: BlockType.REPORTER,
+                    color: '#98c6ea',
                     text: '[QUBIT1] and [QUBIT2]',
                     arguments: {
                         QUBIT1: {
@@ -237,6 +245,7 @@ class QuantumExtension {
                 {
                     opcode: 'negated',
                     blockType: BlockType.REPORTER,
+                    color: '#98c6ea',
                     text: 'negated control [QUBIT]',
                     arguments: {
                         QUBIT: {
@@ -245,6 +254,7 @@ class QuantumExtension {
                         }
                     }
                 },
+                "---",
                 {
                     opcode: 'rotateAxis',
                     blockType: BlockType.COMMAND,
@@ -288,10 +298,12 @@ class QuantumExtension {
                         }
                     }
                 },
+                "---",
                 {
                     opcode: 'measure',
                     blockType: BlockType.BOOLEAN,
                     text: 'measure [QUBIT]',
+                    color: '#59c059',
                     arguments: {
                         QUBIT: {
                             type: ArgumentType.STRING,
@@ -309,16 +321,19 @@ class QuantumExtension {
                     opcode: 'quantumEvaluate',
                     blockType: BlockType.HAT,
                     text: 'Quantum Circuit',
+                    color: '#64a0c8',
                     isEdgeActivated: false
                 },
                 {
                     opcode: 'runCircuits',
                     blockType: BlockType.COMMAND,
+                    color: '#64a0c8',
                     text: 'Run Quantum Circuits'
                 },
                 {
                     opcode: 'runCircuitsState',
                     blockType: BlockType.COMMAND,
+                    color: '#64a0c8',
                     text: 'Run Quantum Circuits starting from [STATE]',
                     arguments: {
                         STATE: {
@@ -330,22 +345,26 @@ class QuantumExtension {
                 {
                     opcode: 'resourceEstimationLabel',
                     blockType: BlockType.BUTTON,
+                    color: '#64a0c8',
                     text: 'Resource Estimation'
                 },
                 {
                     opcode: 'estimateCircuitsResources',
                     blockType: BlockType.COMMAND,
+                    color: '#64a0c8',
                     text: 'Perform Quantum Resource Estimation'
                 },
                 {
                     opcode: 'estimatedCircuitsResources',
                     blockType: BlockType.REPORTER,
+                    color: '#64a0c8',
                     text: 'Estimated Quantum Resources'
                 },
                 {
                     opcode: 'enableDisableSwapDecomposition',
                     blockType: BlockType.COMMAND,
                     text: '[ENABLED] SWAP decomposition',
+                    color: '#64a0c8',
                     arguments: {
                         ENABLED: {
                             type: ArgumentType.BOOLEAN,
@@ -358,6 +377,7 @@ class QuantumExtension {
                     opcode: 'enableDisableNegativeControlTranslation',
                     blockType: BlockType.COMMAND,
                     text: '[ENABLED] substitute negative control lines',
+                    color: '#64a0c8',
                     arguments: {
                         ENABLED: {
                             type: ArgumentType.BOOLEAN,
@@ -370,6 +390,7 @@ class QuantumExtension {
                     opcode: 'enableDisableToffoliDecomposition',
                     blockType: BlockType.COMMAND,
                     text: '[ENABLED] Toffoli decomposition',
+                    color: '#64a0c8',
                     arguments: {
                         ENABLED: {
                             type: ArgumentType.BOOLEAN,
