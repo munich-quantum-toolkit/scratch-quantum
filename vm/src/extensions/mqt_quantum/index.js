@@ -428,6 +428,18 @@ class QuantumExtension {
                             menu: 'enable'
                         }
                     }
+                },
+                {
+                    opcode: 'compatibilityLabel',
+                    blockType: BlockType.BUTTON,
+                    color: '#64a0c8',
+                    text: 'Compatibility'
+                },
+                {
+                    opcode: 'toMLIR',
+                    blockType: BlockType.COMMAND,
+                    color: '#1c466c',
+                    text: 'Export Circuits to MLIR'
                 }
             ],
             menus: {
@@ -765,6 +777,11 @@ class QuantumExtension {
             this.circuits.set(thread, new CircuitExecutionInformation(new StatevectorSimulator(0)));
         }
         return this.circuits.get(thread);
+    }
+
+    toMLIR (util) {
+        console.log('MLIR export is currenly undergoing maintenance')
+        alert("Exported MLIR code printed to console.");
     }
 }
 
