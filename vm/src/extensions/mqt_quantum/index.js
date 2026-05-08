@@ -373,6 +373,19 @@ class QuantumExtension {
                     }
                 },
                 {
+                    opcode: 'setSimulator',
+                    blockType: BlockType.COMMAND,
+                    text: 'Set Simulator to [SIMULATOR]',
+                    color: '#64a0c8',
+                    arguments: {
+                        SIMULATOR: {
+                            type: ArgumentType.STRING,
+                            defaultValue: 'Statevector Simulator',
+                            menu: 'simulator'
+                        }
+                    }
+                },
+                {
                     opcode: 'resourceEstimationLabel',
                     blockType: BlockType.BUTTON,
                     color: '#64a0c8',
@@ -466,6 +479,12 @@ class QuantumExtension {
                     items: [
                         {text: 'Enable', value: 'true'},
                         {text: 'Disable', value: 'false'}
+                    ]
+                },
+                simulator: {
+                    acceptReporters: true,
+                    items: [
+                        {text: 'Statevector Simulator', value: 'Statevector Simulator'},
                     ]
                 }
             }
@@ -777,6 +796,10 @@ class QuantumExtension {
             this.circuits.set(thread, new CircuitExecutionInformation(new StatevectorSimulator(0)));
         }
         return this.circuits.get(thread);
+    }
+
+    setSimulator (args, util) {
+        // TODO: once there are multiple simulators, set the current simulator based on the argument
     }
 
     toMLIR (util) {
