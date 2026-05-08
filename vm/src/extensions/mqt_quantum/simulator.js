@@ -50,6 +50,11 @@ class Simulator {
     _getNumQubits () {
         return this.registers.reduce((sum, reg) => sum + reg.size, 0);
     }
+
+    getRegisterSize(registerName) {
+        const register = this.registers.find(reg => reg.name === registerName);
+        return register ? register.size : 0;
+    }
 }
 
 export {Simulator, Control};

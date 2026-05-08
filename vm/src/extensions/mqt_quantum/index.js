@@ -48,6 +48,10 @@ class AST {
     getPositiveNegative () {
         return this.root.getPositiveNegative();
     }
+
+    toQubitList () {
+        return this.root.toQubitList();
+    }
 }
 
 class AndNode {
@@ -71,6 +75,12 @@ class AndNode {
             [...negL, ...negR]
         ];
     }
+
+    toQubitList () {
+        const leftList = this.left.toQubitList();
+        const rightList = this.right.toQubitList();
+        return [...leftList, ...rightList];
+    }
 }
 
 class NegatedNode {
@@ -87,6 +97,10 @@ class NegatedNode {
     getPositiveNegative () {
         const [pos, neg] = this.value.getPositiveNegative();
         return [neg, pos];
+    }
+
+    toQubitList () {
+        return this.value.toQubitList();
     }
 }
 
@@ -108,7 +122,7 @@ class LeafNode {
         }
         const parts = qubit.split('[');
         if (parts.length !== 2) {
-            return error('Invalid qubit format, expected "register[index]"');
+            return error('Invalid qubit format, expected "register[index]", got ' + qubit);
         }
         const register = parts[0].trim();
         const index = parts[1].trim().replace(']', '');
@@ -119,6 +133,10 @@ class LeafNode {
 
     getPositiveNegative () {
         return [[this], []];
+    }
+
+    toQubitList () {
+        return [this];
     }
 }
 
@@ -174,6 +192,18 @@ class QuantumExtension {
                             type: ArgumentType.NUMBER,
                             defaultValue: 0
                         },
+                        NAME: {
+                            type: ArgumentType.STRING,
+                            defaultValue: 'q'
+                        }
+                    }
+                },
+                {
+                    opcode: 'getQubits',
+                    blockType: BlockType.REPORTER,
+                    color: '#003359',
+                    text: 'qubits of register [NAME]',
+                    arguments: {
                         NAME: {
                             type: ArgumentType.STRING,
                             defaultValue: 'q'
@@ -447,6 +477,14 @@ class QuantumExtension {
         return `${registerName}[${qubit}]`;
     }
 
+    getQubits (args, util) {
+        const registerName = args.NAME;
+        const executionInfo = this.getCurrentExecutionInformation(util);
+        const numQubits = executionInfo.simulationState.getRegisterSize(registerName);
+        const qubits = Array.from({length: numQubits}, (_, i) => `${registerName}[${i}]`).join(' and ');
+        return qubits;
+    }
+
     and (args) {
         const left = args.QUBIT1;
         const right = args.QUBIT2;
@@ -495,16 +533,17 @@ class QuantumExtension {
             return error('Invalid qubit value');
         }
         const parsedQubit = AST.parse(qubit).root;
+        const targets = parsedQubit.toQubitList();
 
-        if (!(parsedQubit instanceof LeafNode)) {
-            return error('Invalid qubit value');
-        }
         const [posControls, negControls] = this.getCurrentControls(
             this.getCurrentExecutionInformation(util).controlStack
         );
-        this.getCurrentExecutionInformation(util).simulationState.applyGate(
-            gate, [parsedQubit], posControls, negControls
-        );
+
+        for (const target of targets) {
+            this.getCurrentExecutionInformation(util).simulationState.applyGate(
+                gate, [target], posControls, negControls
+            );
+        }
 
     }
 
@@ -539,15 +578,17 @@ class QuantumExtension {
         const parsedQubit = AST.parse(qubit).root;
         const angleInRadians = angle * (Math.PI / 180);
 
-        if (!(parsedQubit instanceof LeafNode)) {
-            return error('Invalid qubit value');
-        }
+        const targets = parsedQubit.toQubitList();
+
         const [posControls, negControls] = this.getCurrentControls(
             this.getCurrentExecutionInformation(util).controlStack
         );
-        this.getCurrentExecutionInformation(util).simulationState.applyRotation(
-            axis, angleInRadians, posControls, negControls
-        );
+
+        for (const target of targets) {
+            this.getCurrentExecutionInformation(util).simulationState.applyRotation(
+                axis, angleInRadians, [target], posControls, negControls
+            );
+        }
 
     }
 
@@ -564,18 +605,22 @@ class QuantumExtension {
         const anglePhiInRadians = anglePhi * (Math.PI / 180);
         const angleLambdaInRadians = angleLambda * (Math.PI / 180);
 
-        if (!(parsedQubit instanceof LeafNode)) {
-            return error('Invalid qubit value');
+        const targets = parsedQubit.toQubitList();
+        const [posControls, negControls] = this.getCurrentControls(
+            this.getCurrentExecutionInformation(util).controlStack
+        );
+
+        for (const target of targets) {
+            this.getCurrentExecutionInformation(util).simulationState.applyRotation(
+                'Z', angleLambdaInRadians, [target], posControls, negControls
+            );
+            this.getCurrentExecutionInformation(util).simulationState.applyRotation(
+                'Y', angleThetaInRadians, [target], posControls, negControls
+            );
+            this.getCurrentExecutionInformation(util).simulationState.applyRotation(
+                'Z', anglePhiInRadians, [target], posControls, negControls
+            );
         }
-        this.getCurrentExecutionInformation(util).simulationState.applyRotation(
-            'Z', angleLambdaInRadians, [parsedQubit], []
-        ); // TODO: controls
-        this.getCurrentExecutionInformation(util).simulationState.applyRotation(
-            'Y', angleThetaInRadians, [parsedQubit], []
-        ); // TODO: controls
-        this.getCurrentExecutionInformation(util).simulationState.applyRotation(
-            'Z', anglePhiInRadians, [parsedQubit], []
-        ); // TODO: controls
 
     }
 
@@ -585,10 +630,16 @@ class QuantumExtension {
             return error('Invalid qubit value');
         }
         const parsedQubit = AST.parse(qubit).root;
-        if (!(parsedQubit instanceof LeafNode)) {
-            return error('Invalid qubit value');
+        
+        const targets = parsedQubit.toQubitList();
+
+        let result = "";
+
+        for (const target of targets) {
+            result += this.getCurrentExecutionInformation(util).simulationState.measure(target);
         }
-        return this.getCurrentExecutionInformation(util).simulationState.measure(parsedQubit);
+        return result;
+        //return this.getCurrentExecutionInformation(util).simulationState.measure(parsedQubit);
 
     }
 
