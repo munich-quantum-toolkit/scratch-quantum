@@ -179,7 +179,31 @@ class ResourceEstimator extends Simulator {
 
     getResults () {
         const uses = this.gateUses;
-        let result = `Total Qubits: ${this._getNumQubits() + this.ancillas}\n\n`;
+        const gates = {};
+
+        const gatesByTargetCount = Object.entries(uses).reduce((acc, [gate, targets]) => {
+            if (targets.length === 0) {
+                return acc;
+            }
+            const targetCount = targets[0].length;
+            if (!acc[targetCount]) {
+                acc[targetCount] = [];
+            }
+            acc[targetCount].push(gate);
+            return acc;
+        }, {});
+        for (const count of Object.keys(gatesByTargetCount)) {
+            gates[count] = {};
+            for (const gate of gatesByTargetCount[count]) {
+                gates[count][gate] = this.gateUses[gate].length;
+            }
+        }
+
+        return {
+            "qubits": this._getNumQubits() + this.ancillas,
+            "gates": gates
+        }
+        /*let result = `Total Qubits: ${this._getNumQubits() + this.ancillas}\n\n`;
         const gatesByTargetCount = Object.entries(uses).reduce((acc, [gate, targets]) => {
             if (targets.length === 0) {
                 return acc;
@@ -198,7 +222,7 @@ class ResourceEstimator extends Simulator {
             }
             result += '\n';
         }
-        return result;
+        return result;*/
     }
 }
 

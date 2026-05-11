@@ -32,7 +32,7 @@ class Simulator {
     }
 
     getResults () {
-        return '';
+        return {};
     }
 
     _accessToIndex (access) {
