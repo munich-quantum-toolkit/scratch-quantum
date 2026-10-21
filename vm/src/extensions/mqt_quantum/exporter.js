@@ -16,6 +16,10 @@ const SKIPPED_OPCODES = [
     'quantum_enableDisableToffoliDecomposition'
 ];
 
+const BOOLEAN_OPCODES = [
+    'quantum_measure', 'operator_lt', 'operator_gt', 'operator_equals', 'operator_not', 'operator_and', 'operator_or'
+];
+
 class MLIRExportError extends Error {
     constructor (message, blockId) {
         super(message);
@@ -33,6 +37,8 @@ const ssa = (type, name) => ({type, ssa: name});
 const lookup = (table, key) => (Object.prototype.hasOwnProperty.call(table, key) ? table[key] : null);
 const isSkipped = opcode => SKIPPED_PREFIXES.some(prefix => opcode.startsWith(prefix)) ||
     SKIPPED_OPCODES.includes(opcode);
+
+const variableId = block => block.fields.VARIABLE.id;
 
 /**
  * Translates one 'Quantum Circuit' script into a `qc` MLIR module.
@@ -58,6 +64,7 @@ class Exporter {
         if (!hat || hat.opcode !== 'quantum_quantumEvaluate') {
             throw new MLIRExportError('Place the export block inside a \'Quantum Circuit\' script.', hatId);
         }
+        this.inferVariableTypes(hat.next);
         this.statements(hat.next);
         for (const register of [...this.registers.values()].reverse()) {
             this.emit.line(`memref.dealloc ${register.ssa} : ${register.type}`);
@@ -92,6 +99,18 @@ class Exporter {
                 `MLIR export needs a fixed value here, not the block '${block.opcode}'.`, block.id);
         }
         return String(block.fields[fieldName].value);
+    }
+
+    forEachStatement (firstId, visit) {
+        for (let id = firstId; id; id = this.block(id).next) {
+            const block = this.block(id);
+            visit(block);
+            for (const name of Object.keys(block.inputs)) {
+                if (name.startsWith('SUBSTACK')) {
+                    this.forEachStatement(this.input(block, name), visit);
+                }
+            }
+        }
     }
 
     // ---- statements --------------------------------------------------------------------------
@@ -206,6 +225,19 @@ class Exporter {
         this.controlStack.push(this.qubits(this.requireInput(block, 'QUBIT')));
         this.nested(this.input(block, 'SUBSTACK'));
         this.controlStack.pop();
+    }
+
+    stmt_data_setvariableto (block) {
+        const id = variableId(block);
+        const valueId = this.requireInput(block, 'VALUE');
+        const value = this.variableType(id, block) === 'i1' ? this.bool(valueId) : this.number(valueId);
+        this.variables.set(id, value);
+    }
+
+    stmt_data_changevariableby (block) {
+        const current = this.num_data_variable(block);
+        const delta = this.number(this.requireInput(block, 'VALUE'));
+        this.variables.set(variableId(block), this.binaryF64(current, delta, 'addf', (a, b) => a + b, block));
     }
 
     // ---- quantum operations ------------------------------------------------------------------
@@ -388,6 +420,15 @@ class Exporter {
         return this.arithmetic(block, 'divf', (a, b) => a / b);
     }
 
+    num_data_variable (block) {
+        const value = this.currentValue(variableId(block), block);
+        if (value.type !== 'f64') {
+            throw new MLIRExportError(`The variable '${block.fields.VARIABLE.value}' holds a measurement result ` +
+                'and can\'t be used as a number.', block.id);
+        }
+        return value;
+    }
+
     arithmetic (block, op, fold) {
         const a = this.number(this.requireInput(block, 'NUM1'));
         const b = this.number(this.requireInput(block, 'NUM2'));
@@ -429,6 +470,109 @@ class Exporter {
 
     f64 (value) {
         return isConstant(value) ? this.emit.constF64(value.constant) : value.ssa;
+    }
+
+    // ---- conditions --------------------------------------------------------------------------
+
+    bool (id) {
+        const block = this.block(id);
+        const handler = this[`bool_${block.opcode}`];
+        if (!handler) {
+            throw new MLIRExportError(
+                `The block '${block.opcode}' can't be used as a condition in MLIR export.`, block.id);
+        }
+        return handler.call(this, block);
+    }
+
+    bool_quantum_measure (block) {
+        const results = this.measure(block);
+        if (results.length !== 1) {
+            throw new MLIRExportError('Only a single qubit can be measured here.', block.id);
+        }
+        return ssa('i1', results[0]);
+    }
+
+    bool_data_variable (block) {
+        const value = this.currentValue(variableId(block), block);
+        if (value.type !== 'i1') {
+            throw new MLIRExportError(`The variable '${block.fields.VARIABLE.value}' holds a number ` +
+                'and can\'t be used as a condition.', block.id);
+        }
+        return value;
+    }
+
+    // ---- variables ---------------------------------------------------------------------------
+
+    variableInfo (id, block) {
+        const variable = this.lookupVariable(id);
+        if (!variable) {
+            throw new MLIRExportError('This variable does not exist.', block.id);
+        }
+        return variable;
+    }
+
+    inferVariableTypes (firstId) {
+        const copies = [];
+        this.forEachStatement(firstId, block => {
+            if (block.opcode === 'data_changevariableby') {
+                this.assignType(variableId(block), 'f64', block);
+            }
+            if (block.opcode !== 'data_setvariableto') return;
+            const valueId = this.input(block, 'VALUE');
+            const source = valueId ? this.block(valueId) : null;
+            if (source && source.opcode === 'data_variable') {
+                copies.push([block, source]);
+            } else {
+                const type = source && BOOLEAN_OPCODES.includes(source.opcode) ? 'i1' : 'f64';
+                this.assignType(variableId(block), type, block);
+            }
+        });
+        for (const [block, source] of copies) {
+            this.assignType(variableId(block), this.variableType(variableId(source), source), block);
+        }
+    }
+
+    assignType (id, type, block) {
+        const known = this.variableTypes.get(id);
+        if (known && known !== type) {
+            throw new MLIRExportError(`The variable '${this.variableInfo(id, block).name}' is used for both ` +
+                'numbers and measurement results.', block.id);
+        }
+        this.variableTypes.set(id, type);
+    }
+
+    variableType (id, block) {
+        if (!this.variableTypes.has(id)) {
+            const value = this.variableInfo(id, block).value;
+            const isBoolean = value === true || value === false || value === 'true' || value === 'false';
+            this.variableTypes.set(id, isBoolean ? 'i1' : 'f64');
+        }
+        return this.variableTypes.get(id);
+    }
+
+    currentValue (id, block) {
+        if (!this.variables.has(id)) {
+            this.variables.set(id, this.initialValue(id, block));
+        }
+        return this.variables.get(id);
+    }
+
+    initialValue (id, block) {
+        const variable = this.variableInfo(id, block);
+        const raw = variable.value;
+        if (this.variableType(id, block) === 'i1') {
+            if ([true, 'true', 1, '1'].includes(raw)) return constant('i1', true);
+            if ([false, 'false', 0, '0', ''].includes(raw)) return constant('i1', false);
+            throw new MLIRExportError(`The variable '${variable.name}' holds '${raw}', ` +
+                'which is not a measurement result (0 or 1).', block.id);
+        }
+        const text = String(raw).trim();
+        const value = text === '' ? 0 : Number(text);
+        if (!Number.isFinite(value)) {
+            throw new MLIRExportError(
+                `The variable '${variable.name}' holds '${raw}', which is not a number.`, block.id);
+        }
+        return constant('f64', value);
     }
 }
 
