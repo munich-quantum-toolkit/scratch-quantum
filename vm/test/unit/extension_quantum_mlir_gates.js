@@ -6,8 +6,9 @@ test('registers and gates, broadcast over all qubits of a register', t => {
     const b = new ScriptBuilder();
     const hat = b.script(b.createRegister('q', 2), b.gate('H', b.qubit(0)), b.gate('X', b.qubits('q')));
     const mlir = exportScript(b, hat);
-    t.match(mlir, /^\/\/ Exported from Scratch sprite "Sprite1" by the MQT quantum extension\nmodule \{\n/);
+    t.match(mlir, /^\/\/ Exported from Scratch by the MQT quantum extension\nmodule \{\n/);
     expectLines(t, mlir, [
+        '// \'Quantum Circuit\' script of sprite "Sprite1"',
         'func.func @main() attributes {mqt.entry_point} {',
         '%_ = memref.alloc() {mqt.register_name = "q"} : memref<2x!qc.qubit>',
         '%_ = arith.constant 0 : index',
@@ -65,7 +66,7 @@ test('skipped blocks leave a comment but keep their measurements', t => {
 test('export errors point at the offending block', t => {
     let b = new ScriptBuilder();
     const flag = b.create('event_whenflagclicked');
-    expectExportError(t, b, flag, 'inside a \'Quantum Circuit\' script', flag);
+    expectExportError(t, b, flag, 'Only \'Quantum Circuit\' scripts can be exported to MLIR.', flag);
 
     b = new ScriptBuilder();
     const list = b.create('data_addtolist');

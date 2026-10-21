@@ -1,5 +1,5 @@
 const test = require('tap').test;
-const {MLIREmitter, formatF64} = require('../../src/extensions/mqt_quantum/mlir-emitter');
+const {MLIREmitter, buildModule, formatF64} = require('../../src/extensions/mqt_quantum/mlir-emitter');
 
 test('formatF64 always produces an MLIR float literal', t => {
     t.equal(formatF64(1), '1.0');
@@ -21,7 +21,7 @@ test('fresh names are unique', t => {
     t.end();
 });
 
-test('constants and nested regions are emitted into a module', t => {
+test('constants and nested regions are emitted into a function inside a module', t => {
     const emitter = new MLIREmitter();
     emitter.constF64(0.5);
     const condition = emitter.constBool(true);
@@ -30,7 +30,10 @@ test('constants and nested regions are emitted into a module', t => {
     emitter.reopen('else');
     emitter.comment('nothing');
     emitter.close();
-    t.equal(emitter.toModule('header'), [
+    const other = new MLIREmitter();
+    other.line('qc.h %q : !qc.qubit');
+    t.equal(buildModule('header', [emitter.toFunction('@main() attributes {mqt.entry_point}'),
+        other.toFunction('private @circuit_1()', 'a comment')]), [
         '// header',
         'module {',
         '  func.func @main() attributes {mqt.entry_point} {',
@@ -41,6 +44,11 @@ test('constants and nested regions are emitted into a module', t => {
         '    } else {',
         '      // nothing',
         '    }',
+        '    return',
+        '  }',
+        '  // a comment',
+        '  func.func private @circuit_1() {',
+        '    qc.h %q : !qc.qubit',
         '    return',
         '  }',
         '}',
