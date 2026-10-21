@@ -1,13 +1,14 @@
 # Export Circuits to MLIR — Design
 
-Date: 2026-10-21
-Status: Implemented
+Date: 2026-10-21 (revised 2026-10-21: project-wide export)
+Status: Implemented; project-wide export revision in progress
 
 ## Goal
 
-The `Export Circuits to MLIR` block of the quantum extension (`src/extensions/mqt_quantum`) exports the
-**circuit script it is placed in** to the MQT `qc` MLIR dialect and downloads it as a `.mlir` file that can be fed
-directly into `mqt-cc`.
+The `Export Circuits to MLIR` command block of the quantum extension (`src/extensions/mqt_quantum`) exports **every
+`Quantum Circuit` script of the project** to one MQT `qc` MLIR module and downloads it as `quantum_circuits.mlir`, a
+file that can be fed directly into `mqt-cc`. The block is used like `Run Quantum Circuits` (e.g. under "when green flag
+clicked", or clicked on its own); it does not belong inside a circuit script.
 
 The translation is **static**: the block tree below the script's `Quantum Circuit` hat is translated structurally
 (`repeat` → `scf.for`, `if` → `scf.if`, variables → SSA values), not traced from a simulation run.
@@ -53,28 +54,37 @@ Dialect facts that shape the design:
 ```
 [Export Circuits to MLIR] block executes
   └─ index.js  toMLIR(args, util)
-       ├─ hat    = util.thread.topBlock
-       ├─ blocks = util.thread.target.blocks
-       ├─ mlir   = exportToMLIR(blocks, hat, variableLookup)    ← exporter.js (pure, no DOM)
-       └─ downloadTextFile(`${spriteName}_circuit.mlir`, mlir)  ← download.js
+       ├─ circuits = _collectCircuits()            ← every 'Quantum Circuit' hat via runtime.allScriptsByOpcodeDo
+       │                                             (original targets only), as {blocks, hatId, spriteName, lookupVariable}
+       ├─ mlir     = exportProjectToMLIR(circuits) ← exporter.js (pure, no DOM)
+       └─ downloadTextFile('quantum_circuits.mlir', mlir) ← download.js
 ```
 
 Units (all in `src/extensions/mqt_quantum/`):
 
 | File | Responsibility | Depends on |
 |---|---|---|
-| `mlir-emitter.js` | IR text builder: fresh SSA names, indentation of nested regions, constant helpers (`constIndex`, `constF64`, `constBool`), `loadQubit(reg, idx)`, raw `op(text)` emission, region open/close. Knows nothing about Scratch. | — |
+| `mlir-emitter.js` | IR text builder: fresh SSA names, indentation of nested regions, constant helpers (`constIndex`, `constF64`, `constBool`), region open/close; `toFunction(signature, comment)` wraps the body into a `func.func`, `buildModule(header, functions)` assembles the module. Knows nothing about Scratch. | — |
 | `qubit-expression.js` | `AST`, `AndNode`, `NegatedNode`, `LeafNode` moved verbatim out of `index.js` so simulator blocks and exporter share one parser for literal qubit strings like `q[0] and not q[1]`. | — |
-| `exporter.js` | Walks the Scratch block tree and drives the emitter. Contains the expression evaluator (reporters → typed SSA value or static qubit set) and the statement translator (stack blocks → ops). Exports `exportToMLIR` and `MLIRExportError`. | `mlir-emitter.js`, `qubit-expression.js` |
+| `exporter.js` | Walks the Scratch block tree and drives the emitter. Contains the expression evaluator (reporters → typed SSA value or static qubit set) and the statement translator (stack blocks → ops). Exports `exportProjectToMLIR` (all circuits), `exportToMLIR` (one circuit) and `MLIRExportError`. | `mlir-emitter.js`, `qubit-expression.js` |
 | `download.js` | `downloadTextFile(name, text)`: Blob + `<a download>` click. No-op when `document` is undefined (Node tests). | DOM |
 | `index.js` | `toMLIR` wires the above together and handles errors (see below). Imports the AST classes from `qubit-expression.js`. | all of the above |
 
-The current draft `exporter.js` and `_traverseThread` in `index.js` are replaced.
+### Module shape
 
-Semantics: the **whole script** under the hat is exported regardless of where the export block sits; the export block
-itself is skipped. The script still executes normally when run (the export does not depend on that execution).
+Circuits are collected in the order `Run Quantum Circuits` starts them (so `@circuit_<k>` matches the resource
+estimator's "Circuit #k"); clones are skipped. The module starts with
+`// Exported from Scratch by the MQT quantum extension`, and every circuit function is preceded by
+`// 'Quantum Circuit' script of sprite "<name>"`.
 
-Output header: `// Exported from Scratch sprite "<name>" by the MQT quantum extension` followed by the module.
+- **One circuit:** its translation is the body of `func.func @main() attributes {mqt.entry_point}`.
+- **Several circuits:** each becomes `func.func private @circuit_<k>()` (k = 1, 2, …), and `@main` only calls them in
+  order with `func.call @circuit_<k>() : () -> ()`. mqt-cc's QIR lowering requires register names to be unique in the
+  program, so the `mqt.register_name` of register `q` in circuit k becomes `circuit_<k>_q`; SSA names stay `%q` because
+  they are function-local. Validated with mqt-cc through `--emit=qir-adaptive` (the calls are inlined).
+- **No circuits:** `MLIRExportError` without a block; `toMLIR` shows it on the export block itself.
+
+An export block inside a circuit script is skipped (`// skipped: quantum_toMLIR`) like other side-effect-only blocks.
 
 ## Translation rules
 
@@ -219,10 +229,14 @@ message, for example:
 3. logs it with the block id via `console.error`;
 4. does not download anything.
 
+The error carries the failing circuit's `spriteName`; the alert reads "MLIR export failed in sprite "<name>": …"
+because the bubble is only visible when that sprite is being edited. An error without a block (no circuits) is shown on
+the export block (`util.thread.peekStack()`).
+
 Any other exception is treated as an internal error: generic alert ("MLIR export failed (internal error) — see
 console") plus the stack trace in the console. The Scratch thread never crashes because of the exporter.
 
-On success the file is downloaded and the alert reads "Exported circuit to `<sprite>_circuit.mlir`".
+On success the file is downloaded and the alert reads "Exported circuits to quantum_circuits.mlir".
 
 ## Testing
 
@@ -234,18 +248,19 @@ Using the existing `tap` setup.
    case (asserting message and `blockId`). Assertions match golden line snippets rather than whole files, so SSA
    renumbering does not cause brittleness. Emitter unit tests cover naming and region indentation.
 2. **Integration test** — `test/integration/quantum_mlir_export.js`: load `exercises-2/02`–`05` `.sb3` projects (copied
-   to `test/fixtures/quantum/`) into a VM, export every `Quantum Circuit` script, and compare against snapshots.
+   to `test/fixtures/quantum/`) into a VM, run the export block once per project (03 and 05 contain two circuits each,
+   covering the multi-function shape), and compare the downloaded module against a snapshot.
 3. **Dialect validation** — if the `MQT_CC` environment variable points to an `mqt-cc` binary, the integration test
    runs each exported file through `mqt-cc --emit=qco-optimized` and `--emit=qir-adaptive` and requires exit code 0.
    Without `MQT_CC` the check is skipped with a note.
-4. **Manual smoke test** — build scratch-gui, place the export block into each exercise circuit, verify the download
-   and the error bubble on a deliberately unsupported block.
+4. **Manual smoke test** — build scratch-gui, run the export block from a flag script in each exercise, verify the
+   download and the error bubble on a deliberately unsupported block.
 
 ## Known limitations
 
-- Initial variable values are read when the export block runs, i.e. after earlier blocks of the same script have
-  executed. A variable that is only `change`d (never `set`) in the script therefore starts from its post-run value.
-  Recommendation: `set` variables at the top of the circuit.
+- Initial variable values are the variables' values when the export block runs. If circuits ran before the export, a
+  variable that a circuit only `change`s (never `set`s) starts from its post-run value. Recommendation: `set`
+  variables at the top of the circuit.
 - An `i1` variable (measurement result) carried out of an `scf.for` and then used by an `scf.if` is valid `qc`/`qco`,
   but `mqt-cc --emit=qir-adaptive` currently fails on it (`ub.poison`, an mqt-cc lowering issue).
 - Comparing measurement results with `=` (e.g. `<(m) = 1>`) and initialising a variable with a number before storing a
@@ -255,7 +270,6 @@ Using the existing `tap` setup.
 ## Out of scope
 
 - `forever`, `repeat until`, custom blocks, lists, multi-qubit measurement values.
-- Exporting all circuits of a project at once.
 - Merging consecutive controlled gates into larger `qc.ctrl` regions.
 - Source locations / debug info in the emitted IR.
 - Fixing unrelated simulator issues.
