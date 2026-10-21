@@ -240,6 +240,84 @@ class Exporter {
         this.variables.set(variableId(block), this.binaryF64(current, delta, 'addf', (a, b) => a + b, block));
     }
 
+    stmt_control_repeat (block) {
+        const times = this.number(this.requireInput(block, 'TIMES'));
+        const upper = isConstant(times) ?
+            this.emit.constIndex(Math.max(0, Math.round(times.constant))) :
+            this.toIndex(times);
+        const lower = this.emit.constIndex(0);
+        const step = this.emit.constIndex(1);
+        const iv = this.emit.fresh('iv');
+        const loop = `scf.for ${iv} = ${lower} to ${upper} step ${step}`;
+        const body = this.input(block, 'SUBSTACK');
+        const carried = this.assignedVariables(body);
+        if (carried.length === 0) {
+            this.emit.open(loop);
+            this.nested(body);
+            this.emit.close();
+            return;
+        }
+        const types = carried.map(id => this.variableType(id, block));
+        const initial = carried.map(id => this.materialize(this.currentValue(id, block)));
+        const args = carried.map(() => this.emit.fresh('arg'));
+        const results = this.results(carried.length);
+        const iterArgs = args.map((arg, i) => `${arg} = ${initial[i]}`).join(', ');
+        this.emit.open(`${results.definition} = ${loop} iter_args(${iterArgs}) -> (${types.join(', ')})`);
+        carried.forEach((id, i) => this.variables.set(id, ssa(types[i], args[i])));
+        this.nested(body);
+        this.yieldVariables(carried, types);
+        this.emit.close();
+        carried.forEach((id, i) => this.variables.set(id, ssa(types[i], results.names[i])));
+    }
+
+    stmt_control_if (block) {
+        this.conditional(block, this.input(block, 'SUBSTACK'), null);
+    }
+
+    stmt_control_if_else (block) {
+        this.conditional(block, this.input(block, 'SUBSTACK'), this.input(block, 'SUBSTACK2'));
+    }
+
+    conditional (block, thenId, elseId) {
+        const condition = this.i1(this.bool(this.requireInput(block, 'CONDITION')));
+        const carried = [...new Set([...this.assignedVariables(thenId), ...this.assignedVariables(elseId)])];
+        if (carried.length === 0) {
+            this.emit.open(`scf.if ${condition}`);
+            this.nested(thenId);
+            if (elseId) {
+                this.emit.reopen('else');
+                this.nested(elseId);
+            }
+            this.emit.close();
+            return;
+        }
+        const types = carried.map(id => this.variableType(id, block));
+        const before = carried.map(id => this.currentValue(id, block));
+        const results = this.results(carried.length);
+        this.emit.open(`${results.definition} = scf.if ${condition} -> (${types.join(', ')})`);
+        this.nested(thenId);
+        this.yieldVariables(carried, types);
+        carried.forEach((id, i) => this.variables.set(id, before[i]));
+        this.emit.reopen('else');
+        this.nested(elseId);
+        this.yieldVariables(carried, types);
+        this.emit.close();
+        carried.forEach((id, i) => this.variables.set(id, ssa(types[i], results.names[i])));
+    }
+
+    results (count) {
+        const base = this.emit.fresh();
+        if (count === 1) {
+            return {definition: base, names: [base]};
+        }
+        return {definition: `${base}:${count}`, names: Array.from({length: count}, (_, i) => `${base}#${i}`)};
+    }
+
+    yieldVariables (carried, types) {
+        const values = carried.map(id => this.materialize(this.variables.get(id)));
+        this.emit.line(`scf.yield ${values.join(', ')} : ${types.join(', ')}`);
+    }
+
     // ---- quantum operations ------------------------------------------------------------------
 
     gate (targets, render, block) {
@@ -472,6 +550,14 @@ class Exporter {
         return isConstant(value) ? this.emit.constF64(value.constant) : value.ssa;
     }
 
+    i1 (value) {
+        return isConstant(value) ? this.emit.constBool(value.constant) : value.ssa;
+    }
+
+    materialize (value) {
+        return value.type === 'i1' ? this.i1(value) : this.f64(value);
+    }
+
     // ---- conditions --------------------------------------------------------------------------
 
     bool (id) {
@@ -499,6 +585,63 @@ class Exporter {
                 'and can\'t be used as a condition.', block.id);
         }
         return value;
+    }
+
+    bool_operator_not (block) {
+        const value = this.bool(this.requireInput(block, 'OPERAND'));
+        if (isConstant(value)) {
+            return constant('i1', !value.constant);
+        }
+        const one = this.emit.constBool(true);
+        const name = this.emit.fresh();
+        this.emit.line(`${name} = arith.xori ${value.ssa}, ${one} : i1`);
+        return ssa('i1', name);
+    }
+
+    bool_operator_and (block) {
+        return this.logical(block, 'andi', (a, b) => a && b);
+    }
+
+    bool_operator_or (block) {
+        return this.logical(block, 'ori', (a, b) => a || b);
+    }
+
+    bool_operator_lt (block) {
+        return this.compare(block, 'olt', (a, b) => a < b);
+    }
+
+    bool_operator_gt (block) {
+        return this.compare(block, 'ogt', (a, b) => a > b);
+    }
+
+    bool_operator_equals (block) {
+        return this.compare(block, 'oeq', (a, b) => a === b);
+    }
+
+    logical (block, op, fold) {
+        const a = this.bool(this.requireInput(block, 'OPERAND1'));
+        const b = this.bool(this.requireInput(block, 'OPERAND2'));
+        if (isConstant(a) && isConstant(b)) {
+            return constant('i1', fold(a.constant, b.constant));
+        }
+        const lhs = this.i1(a);
+        const rhs = this.i1(b);
+        const name = this.emit.fresh();
+        this.emit.line(`${name} = arith.${op} ${lhs}, ${rhs} : i1`);
+        return ssa('i1', name);
+    }
+
+    compare (block, predicate, fold) {
+        const a = this.number(this.requireInput(block, 'OPERAND1'));
+        const b = this.number(this.requireInput(block, 'OPERAND2'));
+        if (isConstant(a) && isConstant(b)) {
+            return constant('i1', fold(a.constant, b.constant));
+        }
+        const lhs = this.f64(a);
+        const rhs = this.f64(b);
+        const name = this.emit.fresh();
+        this.emit.line(`${name} = arith.cmpf ${predicate}, ${lhs}, ${rhs} : f64`);
+        return ssa('i1', name);
     }
 
     // ---- variables ---------------------------------------------------------------------------
@@ -573,6 +716,16 @@ class Exporter {
                 `The variable '${variable.name}' holds '${raw}', which is not a number.`, block.id);
         }
         return constant('f64', value);
+    }
+
+    assignedVariables (firstId) {
+        const ids = new Set();
+        this.forEachStatement(firstId, block => {
+            if (block.opcode === 'data_setvariableto' || block.opcode === 'data_changevariableby') {
+                ids.add(variableId(block));
+            }
+        });
+        return [...ids];
     }
 }
 
