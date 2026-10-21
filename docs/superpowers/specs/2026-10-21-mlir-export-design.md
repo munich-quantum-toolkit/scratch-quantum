@@ -1,7 +1,7 @@
 # Export Circuits to MLIR — Design
 
 Date: 2026-10-21
-Status: Draft (awaiting review)
+Status: Implemented
 
 ## Goal
 
@@ -15,7 +15,8 @@ The translation is **static**: the block tree below the script's `Quantum Circui
 ## Reference: target dialect
 
 Validated against `mqt-cc` built from `~/01_research/core` (`cmake-build-llvm23/mlir/tools/mqt-cc/mqt-cc`).
-All constructs below parse with `--emit=qc` and lower through `--emit=qco-optimized` and `--emit=qir-adaptive`.
+All constructs below parse with `--emit=qc` and lower through `--emit=qco-optimized`. They also lower through
+`--emit=qir-adaptive`, with one exception (see [Known limitations](#known-limitations)).
 
 ```mlir
 module {
@@ -160,7 +161,7 @@ Measuring more than one qubit in a value position (condition or variable) is an 
 ### Control flow
 
 - `repeat [N]` → `scf.for %iv = %c0 to %n step %c1` (with `iter_args` for loop-carried variables, see below).
-  Constant `N` is rounded with `Math.round` like Scratch and must be ≥ 0; dynamic `N` is converted via
+  Constant `N` is rounded with `Math.round` like Scratch and a negative `N` is clamped to 0 (Scratch semantics); dynamic `N` is converted via
   `arith.fptosi` + `arith.index_cast` (truncation).
 - `if <C> then` → `scf.if %c { … }`; `if <C> then … else …` → `scf.if %c { … } else { … }`.
 - Conditions must evaluate to `i1`: `measure`, a boolean variable, `not` (`arith.xori` with `true`), `and`
@@ -239,6 +240,17 @@ Using the existing `tap` setup.
    Without `MQT_CC` the check is skipped with a note.
 4. **Manual smoke test** — build scratch-gui, place the export block into each exercise circuit, verify the download
    and the error bubble on a deliberately unsupported block.
+
+## Known limitations
+
+- Initial variable values are read when the export block runs, i.e. after earlier blocks of the same script have
+  executed. A variable that is only `change`d (never `set`) in the script therefore starts from its post-run value.
+  Recommendation: `set` variables at the top of the circuit.
+- An `i1` variable (measurement result) carried out of an `scf.for` and then used by an `scf.if` is valid `qc`/`qco`,
+  but `mqt-cc --emit=qir-adaptive` currently fails on it (`ub.poison`, an mqt-cc lowering issue).
+- Comparing measurement results with `=` (e.g. `<(m) = 1>`) and initialising a variable with a number before storing a
+  measurement in it are not supported (type error).
+- Error messages name blocks by opcode (e.g. `data_addtolist`) rather than by their display text.
 
 ## Out of scope
 
