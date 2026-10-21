@@ -3,6 +3,8 @@ const {MLIREmitter} = require('./mlir-emitter');
 
 const QUBIT = '!qc.qubit';
 const GATES = {X: 'x', Y: 'y', Z: 'z', H: 'h', S: 's', T: 't'};
+const AXES = {X: 'rx', Y: 'ry', Z: 'rz'};
+const DEG_TO_RAD = Math.PI / 180;
 const REGISTER_NAME = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
 const SKIPPED_PREFIXES = ['looks_', 'motion_', 'sound_', 'pen_'];
 const SKIPPED_OPCODES = [
@@ -25,6 +27,8 @@ class MLIRExportError extends Error {
 // A value is either a constant known at export time or an SSA value; `type` is 'f64', 'i1' or 'index'.
 const constant = (type, value) => ({type, constant: value});
 const isConstant = value => Object.prototype.hasOwnProperty.call(value, 'constant');
+
+const ssa = (type, name) => ({type, ssa: name});
 
 const lookup = (table, key) => (Object.prototype.hasOwnProperty.call(table, key) ? table[key] : null);
 const isSkipped = opcode => SKIPPED_PREFIXES.some(prefix => opcode.startsWith(prefix)) ||
@@ -159,6 +163,36 @@ class Exporter {
         }
         for (const target of this.targets(this.requireInput(block, 'QUBIT'))) {
             this.gate([target], args => `qc.${gate} ${args[0]} : ${QUBIT}`, block);
+        }
+    }
+
+    stmt_quantum_swapGate (block) {
+        const first = this.targets(this.requireInput(block, 'QUBIT1'));
+        const second = this.targets(this.requireInput(block, 'QUBIT2'));
+        if (first.length !== 1 || second.length !== 1) {
+            throw new MLIRExportError('SWAP needs exactly one qubit on each side.', block.id);
+        }
+        this.gate([first[0], second[0]], args => `qc.swap ${args[0]}, ${args[1]} : ${QUBIT}, ${QUBIT}`, block);
+    }
+
+    stmt_quantum_rotateAxis (block) {
+        const gate = lookup(AXES, this.literal(this.requireInput(block, 'AXIS')));
+        if (!gate) {
+            throw new MLIRExportError('Unknown rotation axis.', block.id);
+        }
+        const targets = this.targets(this.requireInput(block, 'QUBIT'));
+        const angle = this.radians(this.number(this.requireInput(block, 'ANGLE')));
+        for (const target of targets) {
+            this.gate([target], args => `qc.${gate}(${angle}) ${args[0]} : ${QUBIT}`, block);
+        }
+    }
+
+    stmt_quantum_u3 (block) {
+        const targets = this.targets(this.requireInput(block, 'QUBIT'));
+        const [theta, phi, lambda] = ['THETA', 'PHI', 'LAMBDA']
+            .map(name => this.radians(this.number(this.requireInput(block, name))));
+        for (const target of targets) {
+            this.gate([target], args => `qc.u(${theta}, ${phi}, ${lambda}) ${args[0]} : ${QUBIT}`, block);
         }
     }
 
@@ -309,6 +343,53 @@ class Exporter {
 
     num_text (block) {
         return this.literalNumber(block, block.fields.TEXT.value);
+    }
+
+    num_operator_add (block) {
+        return this.arithmetic(block, 'addf', (a, b) => a + b);
+    }
+
+    num_operator_subtract (block) {
+        return this.arithmetic(block, 'subf', (a, b) => a - b);
+    }
+
+    num_operator_multiply (block) {
+        return this.arithmetic(block, 'mulf', (a, b) => a * b);
+    }
+
+    num_operator_divide (block) {
+        return this.arithmetic(block, 'divf', (a, b) => a / b);
+    }
+
+    arithmetic (block, op, fold) {
+        const a = this.number(this.requireInput(block, 'NUM1'));
+        const b = this.number(this.requireInput(block, 'NUM2'));
+        return this.binaryF64(a, b, op, fold, block);
+    }
+
+    binaryF64 (a, b, op, fold, block) {
+        if (isConstant(a) && isConstant(b)) {
+            const value = fold(a.constant, b.constant);
+            if (!Number.isFinite(value)) {
+                throw new MLIRExportError('This calculation has no finite result (division by zero?).', block.id);
+            }
+            return constant('f64', value);
+        }
+        const lhs = this.f64(a);
+        const rhs = this.f64(b);
+        const name = this.emit.fresh();
+        this.emit.line(`${name} = arith.${op} ${lhs}, ${rhs} : f64`);
+        return ssa('f64', name);
+    }
+
+    radians (value) {
+        if (isConstant(value)) {
+            return this.emit.constF64(value.constant * DEG_TO_RAD);
+        }
+        const factor = this.emit.constF64(DEG_TO_RAD);
+        const name = this.emit.fresh();
+        this.emit.line(`${name} = arith.mulf ${value.ssa}, ${factor} : f64`);
+        return name;
     }
 
     toIndex (value) {
