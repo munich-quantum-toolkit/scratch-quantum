@@ -90,11 +90,11 @@ class StatevectorSimulator extends Simulator {
             this._accessToIndex(targetAccess(x))
         ).filter(v => v < this._getNumQubits());
 
-        let matrix = this._getParametrizedGateMatrix(`r${axis}`, angle);
+        let matrix = this._getParametrizedGateMatrix(`R${axis}`, angle);
         matrix = this._addControlsToMatrix(
             matrix,
-            positiveControlAccesses.length,
-            negativeControlAccesses.length
+            positiveControlAccesses,
+            negativeControlAccesses
         );
         this._applyMatrixToQubits(matrix, [
             ...positiveControlAccesses,
@@ -175,7 +175,7 @@ class StatevectorSimulator extends Simulator {
                 .set(0, 0, new Complex(1, 0))
                 .set(0, 1, new Complex(0, 0))
                 .set(1, 0, new Complex(0, 0))
-                .set(1, 1, new Complex(Math.cos(Math.PI / 8), Math.sin(Math.PI / 8)));
+                .set(1, 1, new Complex(Math.cos(Math.PI / 4), Math.sin(Math.PI / 4)));
         case 'SWAP':
             return new Matrix(4, 4)
                 .set(0, 0, new Complex(1, 0))
@@ -213,8 +213,8 @@ class StatevectorSimulator extends Simulator {
             const sinZ = Math.sin(params / 2);
             return new Matrix(2, 2)
                 .set(0, 0, new Complex(cosZ, -sinZ))
-                .set(0, 1, new Complex(0, -sinZ))
-                .set(1, 0, new Complex(0, sinZ))
+                .set(0, 1, new Complex(0, 0))
+                .set(1, 0, new Complex(0, 0))
                 .set(1, 1, new Complex(cosZ, sinZ));
         }
         default:

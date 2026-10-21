@@ -110,13 +110,14 @@ class ResourceEstimator extends Simulator {
         );
         this._logGateUse(gate, positiveControlAccesses, negativeControlAccesses, accesses);
 
-        if (gate in ['Z', 'S', 'T']) {
+        if (['Z', 'S', 'T'].includes(gate)) {
             return; // Phase gates do nothing in our approximation.
         }
-        if (gate in ['X', 'Y']) {
+        if (['X', 'Y'].includes(gate)) {
             this._doGate(positiveControlAccesses, negativeControlAccesses,
                 ok => {
-                    this.qubits[accesses[0]] = ok ? !this.qubits[accesses[0]] : null;
+                    const current = this.qubits[accesses[0]];
+                    this.qubits[accesses[0]] = ok && current !== null ? 1 - current : null;
                 });
         }
         if (gate === 'H') {
