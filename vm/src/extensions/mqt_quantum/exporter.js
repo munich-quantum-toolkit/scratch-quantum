@@ -102,6 +102,12 @@ class Exporter {
         }
     }
 
+    nested (firstId) {
+        this.depth++;
+        this.statements(firstId);
+        this.depth--;
+    }
+
     statement (block) {
         const handler = this[`stmt_${block.opcode}`];
         if (handler) {
@@ -196,11 +202,32 @@ class Exporter {
         }
     }
 
+    stmt_quantum_controlled (block) {
+        this.controlStack.push(this.qubits(this.requireInput(block, 'QUBIT')));
+        this.nested(this.input(block, 'SUBSTACK'));
+        this.controlStack.pop();
+    }
+
     // ---- quantum operations ------------------------------------------------------------------
 
     gate (targets, render, block) {
-        this.checkDistinct(targets, block);
-        this.emit.line(render(targets.map(ref => this.load(ref))));
+        const controls = [].concat(...this.controlStack);
+        this.checkDistinct([...controls, ...targets], block);
+        const controlNames = controls.map(ref => this.load(ref));
+        const targetNames = targets.map(ref => this.load(ref));
+        if (controls.length === 0) {
+            this.emit.line(render(targetNames));
+            return;
+        }
+        const negated = controlNames.filter((_, i) => controls[i].negated);
+        negated.forEach(name => this.emit.line(`qc.x ${name} : ${QUBIT}`));
+        const args = targetNames.map(() => this.emit.fresh('t'));
+        const bindings = args.map((arg, i) => `${arg} = ${targetNames[i]}`).join(', ');
+        this.emit.open(`qc.ctrl(${controlNames.join(', ')}) targets (${bindings})`);
+        this.emit.line(render(args));
+        this.emit.line('qc.yield');
+        this.emit.close(` : {${controls.map(() => QUBIT).join(', ')}}, {${targets.map(() => QUBIT).join(', ')}}`);
+        negated.forEach(name => this.emit.line(`qc.x ${name} : ${QUBIT}`));
     }
 
     checkDistinct (refs, block) {
