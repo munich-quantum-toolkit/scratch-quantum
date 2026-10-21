@@ -1,7 +1,7 @@
 # Export Circuits to MLIR — Design
 
 Date: 2026-10-21 (revised 2026-10-21: project-wide export)
-Status: Implemented; project-wide export revision in progress
+Status: Implemented (including project-wide export)
 
 ## Goal
 

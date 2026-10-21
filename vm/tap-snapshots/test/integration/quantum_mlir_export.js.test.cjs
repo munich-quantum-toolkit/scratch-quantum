@@ -5,9 +5,10 @@
  * Make sure to inspect the output below.  Do not ignore changes!
  */
 'use strict'
-exports[`test/integration/quantum_mlir_export.js TAP exports every circuit of the 02-circuits exercise > Sprite1 circuit 1 1`] = `
-// Exported from Scratch sprite "Sprite1" by the MQT quantum extension
+exports[`test/integration/quantum_mlir_export.js TAP exports all circuits of the 02-circuits exercise > quantum_circuits.mlir 1`] = `
+// Exported from Scratch by the MQT quantum extension
 module {
+  // 'Quantum Circuit' script of sprite "Sprite1"
   func.func @main() attributes {mqt.entry_point} {
     %q = memref.alloc() {mqt.register_name = "q"} : memref<1x!qc.qubit>
     // skipped: looks_sayforsecs
@@ -21,11 +22,12 @@ module {
 
 `
 
-exports[`test/integration/quantum_mlir_export.js TAP exports every circuit of the 03-verification exercise > Sprite1 circuit 1 1`] = `
-// Exported from Scratch sprite "Sprite1" by the MQT quantum extension
+exports[`test/integration/quantum_mlir_export.js TAP exports all circuits of the 03-verification exercise > quantum_circuits.mlir 1`] = `
+// Exported from Scratch by the MQT quantum extension
 module {
-  func.func @main() attributes {mqt.entry_point} {
-    %q = memref.alloc() {mqt.register_name = "q"} : memref<2x!qc.qubit>
+  // 'Quantum Circuit' script of sprite "Sprite1"
+  func.func private @circuit_1() {
+    %q = memref.alloc() {mqt.register_name = "circuit_1_q"} : memref<2x!qc.qubit>
     %c0 = arith.constant 0 : index
     %0 = memref.load %q[%c0] : memref<2x!qc.qubit>
     qc.h %0 : !qc.qubit
@@ -43,15 +45,9 @@ module {
     memref.dealloc %q : memref<2x!qc.qubit>
     return
   }
-}
-
-`
-
-exports[`test/integration/quantum_mlir_export.js TAP exports every circuit of the 03-verification exercise > Sprite1 circuit 2 1`] = `
-// Exported from Scratch sprite "Sprite1" by the MQT quantum extension
-module {
-  func.func @main() attributes {mqt.entry_point} {
-    %q = memref.alloc() {mqt.register_name = "q"} : memref<2x!qc.qubit>
+  // 'Quantum Circuit' script of sprite "Sprite1"
+  func.func private @circuit_2() {
+    %q = memref.alloc() {mqt.register_name = "circuit_2_q"} : memref<2x!qc.qubit>
     %c0 = arith.constant 0 : index
     %0 = memref.load %q[%c0] : memref<2x!qc.qubit>
     qc.h %0 : !qc.qubit
@@ -75,13 +71,19 @@ module {
     memref.dealloc %q : memref<2x!qc.qubit>
     return
   }
+  func.func @main() attributes {mqt.entry_point} {
+    func.call @circuit_1() : () -> ()
+    func.call @circuit_2() : () -> ()
+    return
+  }
 }
 
 `
 
-exports[`test/integration/quantum_mlir_export.js TAP exports every circuit of the 04-resource-estimation exercise > Sprite1 circuit 1 1`] = `
-// Exported from Scratch sprite "Sprite1" by the MQT quantum extension
+exports[`test/integration/quantum_mlir_export.js TAP exports all circuits of the 04-resource-estimation exercise > quantum_circuits.mlir 1`] = `
+// Exported from Scratch by the MQT quantum extension
 module {
+  // 'Quantum Circuit' script of sprite "Sprite1"
   func.func @main() attributes {mqt.entry_point} {
     %q = memref.alloc() {mqt.register_name = "q"} : memref<15x!qc.qubit>
     %c0 = arith.constant 0 : index
@@ -147,11 +149,12 @@ module {
 
 `
 
-exports[`test/integration/quantum_mlir_export.js TAP exports every circuit of the 05-compilation exercise > Sprite1 circuit 1 1`] = `
-// Exported from Scratch sprite "Sprite1" by the MQT quantum extension
+exports[`test/integration/quantum_mlir_export.js TAP exports all circuits of the 05-compilation exercise > quantum_circuits.mlir 1`] = `
+// Exported from Scratch by the MQT quantum extension
 module {
-  func.func @main() attributes {mqt.entry_point} {
-    %q = memref.alloc() {mqt.register_name = "q"} : memref<5x!qc.qubit>
+  // 'Quantum Circuit' script of sprite "Sprite1"
+  func.func private @circuit_1() {
+    %q = memref.alloc() {mqt.register_name = "circuit_1_q"} : memref<5x!qc.qubit>
     %c0 = arith.constant 0 : index
     %0 = memref.load %q[%c0] : memref<5x!qc.qubit>
     qc.h %0 : !qc.qubit
@@ -220,15 +223,9 @@ module {
     memref.dealloc %q : memref<5x!qc.qubit>
     return
   }
-}
-
-`
-
-exports[`test/integration/quantum_mlir_export.js TAP exports every circuit of the 05-compilation exercise > Sprite1 circuit 2 1`] = `
-// Exported from Scratch sprite "Sprite1" by the MQT quantum extension
-module {
-  func.func @main() attributes {mqt.entry_point} {
-    %q = memref.alloc() {mqt.register_name = "q"} : memref<5x!qc.qubit>
+  // 'Quantum Circuit' script of sprite "Sprite1"
+  func.func private @circuit_2() {
+    %q = memref.alloc() {mqt.register_name = "circuit_2_q"} : memref<5x!qc.qubit>
     %c0 = arith.constant 0 : index
     %0 = memref.load %q[%c0] : memref<5x!qc.qubit>
     qc.h %0 : !qc.qubit
@@ -295,6 +292,11 @@ module {
     %20 = memref.load %q[%c4_1] : memref<5x!qc.qubit>
     qc.swap %19, %20 : !qc.qubit, !qc.qubit
     memref.dealloc %q : memref<5x!qc.qubit>
+    return
+  }
+  func.func @main() attributes {mqt.entry_point} {
+    func.call @circuit_1() : () -> ()
+    func.call @circuit_2() : () -> ()
     return
   }
 }
