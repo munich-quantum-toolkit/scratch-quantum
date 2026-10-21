@@ -816,7 +816,13 @@ class QuantumExtension {
             }
             return;
         }
-        this._download(fileName, mlir);
+        try {
+            this._download(fileName, mlir);
+        } catch (e) {
+            console.error(e);
+            this._notify('MLIR export failed (internal error), see console');
+            return;
+        }
         this._notify(`Exported circuit to ${fileName}`);
     }
 

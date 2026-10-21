@@ -61,3 +61,16 @@ test('internal errors are reported without crashing the thread', t => {
     t.same(notes, ['MLIR export failed (internal error), see console']);
     t.end();
 });
+
+test('download failures are reported without crashing the thread', t => {
+    const b = new ScriptBuilder();
+    const hat = b.script(b.createRegister('q', 1), b.gate('H', b.qubit(0)), b.create('quantum_toMLIR'));
+    const {extension, util, reports, notes} = setup(b, hat);
+    extension._download = () => {
+        throw new Error('blob failed');
+    };
+    t.doesNotThrow(() => extension.toMLIR({}, util));
+    t.same(notes, ['MLIR export failed (internal error), see console']);
+    t.same(reports, []);
+    t.end();
+});
