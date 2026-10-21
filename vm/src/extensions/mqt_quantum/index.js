@@ -4,6 +4,8 @@ const StatevectorSimulator = require('./statevector-simulator').default;
 const {ResourceEstimator, ResourceEstimatorSettings} = require('./resource-estimator');
 const {AST, LeafNode, NegatedNode, AndNode, validateRegisterName, validateQubitIndex} =
     require('./qubit-expression');
+const {exportToMLIR, MLIRExportError} = require('./exporter');
+const {downloadTextFile} = require('./download');
 
 const error = function (message) {
     console.error(message);
@@ -792,9 +794,40 @@ class QuantumExtension {
         // TODO: once there are multiple simulators, set the current simulator based on the argument
     }
 
-    toMLIR (util) {
-        console.log('MLIR export is currenly undergoing maintenance')
-        alert("Exported MLIR code printed to console.");
+    toMLIR (_args, util) {
+        const target = util.target;
+        const fileName = `${target.getName()}_circuit.mlir`;
+        let mlir;
+        try {
+            mlir = exportToMLIR(target.blocks, util.thread.topBlock, {
+                spriteName: target.getName(),
+                lookupVariable: id => target.lookupVariableById(id)
+            });
+        } catch (e) {
+            if (e instanceof MLIRExportError) {
+                console.error(`MLIR export failed at block ${e.blockId}: ${e.message}`);
+                if (e.blockId) {
+                    this.runtime.visualReport(e.blockId, e.message);
+                }
+                this._notify(`MLIR export failed: ${e.message}`);
+            } else {
+                console.error(e);
+                this._notify('MLIR export failed (internal error), see console');
+            }
+            return;
+        }
+        this._download(fileName, mlir);
+        this._notify(`Exported circuit to ${fileName}`);
+    }
+
+    _download (fileName, text) {
+        downloadTextFile(fileName, text);
+    }
+
+    _notify (message) {
+        if (typeof alert === 'function') {
+            alert(message); // eslint-disable-line no-alert
+        }
     }
 }
 
