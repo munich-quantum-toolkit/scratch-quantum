@@ -12,7 +12,7 @@ const downloadTextFile = function (fileName, text) {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    setTimeout(() => URL.revokeObjectURL(url), 0);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
 };
 
 module.exports = {downloadTextFile};
