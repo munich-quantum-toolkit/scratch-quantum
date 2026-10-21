@@ -1,5 +1,5 @@
-import {Simulator} from './simulator';
-import {Register, targetAccess} from './utils';
+import {Simulator} from './simulator.js';
+import {Register, targetAccess} from './utils.js';
 
 class ResourceEstimatorSettings {
     constructor (negativeControlTranslation, toffoliDecomposition, swapDecomposition) {

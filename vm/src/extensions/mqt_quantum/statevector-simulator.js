@@ -1,6 +1,6 @@
-import {Simulator} from './simulator';
-import {Register, targetAccess, error} from './utils';
-import {Vector, Matrix, Complex} from './complex-math';
+import {Simulator} from './simulator.js';
+import {Register, targetAccess, error} from './utils.js';
+import {Vector, Matrix, Complex} from './complex-math.js';
 
 const INTERNAL_STARTING_REGISTER = '~~internal_init';
 const MAX_QUBITS = 10;
