@@ -1,7 +1,7 @@
 # Documentation — Design
 
 Date: 2026-10-26
-Status: Draft (awaiting review)
+Status: Approved
 
 ## Goal
 
@@ -31,7 +31,7 @@ the forks of scratch-vm and scratch-gui).
   the maintainers (documented in the developer guide); the repository only provides the configuration.
 - GitHub Pages builds the repository root with Jekyll today. Markdown under `docs/` would then be processed by Jekyll
   (MyST syntax can break Liquid parsing). Add an empty `.nojekyll` file at the repository root so Pages serves the
-  static app files unchanged and ignores the docs sources.
+  static app files unchanged and ignores the docs sources (confirmed by the maintainer).
 
 ## Files added to the repository
 
@@ -48,7 +48,7 @@ the forks of scratch-vm and scratch-gui).
 | `docs/_templates/page.html` | Copied from mqt-debugger (MQT's Furo footer with next/previous links). |
 | `docs/*.md`, `docs/**/*.md` | The pages below. |
 | `docs/exercises/templates/*.sb3` | Exercise templates for download. |
-| `docs/refs.bib`, `docs/lit_header.bib` | Bibliography for the references page: `lit_header.bib` copied from mqt-debugger; `refs.bib` contains the `mqt` entry (The MQT Handbook) copied from mqt-debugger's `refs.bib`. |
+| `docs/refs.bib`, `docs/lit_header.bib` | Bibliography for the references page: `lit_header.bib` copied from mqt-debugger; `refs.bib` contains the `mqt` entry (The MQT Handbook) copied from mqt-debugger's `refs.bib` and the paper on this extension, `qce_2026_01` (D. Rovara and R. Wille, "Teaching Quantum Design Automation with Block-Based Programming", `booktitle = qce`, 2026; the `qce` string is defined in `lit_header.bib`). |
 
 ## Rendering Scratch blocks
 
@@ -98,7 +98,8 @@ Developers
                           tests, building and deploying the web app to this repository, setting up Read the Docs
   architecture            Extension layout (index.js, simulators, resource estimator, exporter), adding a block
   contributing            Contribution workflow (commit style, tests, lint)
-references                How to cite: the MQT Handbook ({cite:p}`mqt`), as on other MQT references pages
+references                How to cite: the paper on this extension ({cite:p}`qce_2026_01`) and the MQT Handbook
+                          ({cite:p}`mqt`), as on other MQT references pages; the README's citation section cites both
 support                   Where to ask (GitHub issues/discussions of the repository)
 credits                   Scratch credit and trademark notice, licenses
 ```
