@@ -8,8 +8,10 @@ You do not need to know any quantum computing for this; {doc}`quantum-basics` ex
 
 Open the editor in your browser: [{{ editor_url }}](https://munich-quantum-toolkit.github.io/scratch-quantum/).
 
-The quantum blocks are in the "Quantum" category at the bottom of the block palette.
-If you do not see this category, click the "Add Extension" button in the bottom-left corner of the editor and choose "Quantum".
+A new project does not contain the quantum blocks yet.
+Click the "Add Extension" button in the bottom-left corner of the editor and choose "Quantum".
+The "Quantum" category then appears at the bottom of the block palette.
+Projects that already contain quantum blocks, such as the exercise templates, load the extension automatically.
 
 ## Build your first circuit
 
@@ -79,8 +81,9 @@ say (result)
 
 ## Run it
 
-A `Quantum Circuit` script does not run when you click it.
-The circuit is only simulated when you tell the extension to run all circuits.
+The green flag does not start a `Quantum Circuit` script.
+The `Run Quantum Circuits` block starts all `Quantum Circuit` scripts of the project together, and it is the intended way to run circuits.
+Clicking a single `Quantum Circuit` script runs just that circuit.
 Build this second script next to the circuit:
 
 ```{scratchblocks}
