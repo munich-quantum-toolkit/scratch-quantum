@@ -355,7 +355,7 @@ The sprite says `01`: qubit 0 is 0 and qubit 1 is 1.
 ## Circuit execution
 
 The following blocks run circuits.
-{doc}`quickstart` shows them in use; a separate page on simulation will describe the simulator in more detail.
+{doc}`quickstart` shows them in use, and {doc}`simulation` describes how circuits run and what the simulator can do.
 
 ### Quantum Circuit
 
@@ -404,6 +404,8 @@ Behaviour
 
 Notes
 : - The state `0` gives the same result as `Run Quantum Circuits`.
+  - Type the number directly into the input of the block; other ways of providing it are not guaranteed to work.
+    {doc}`simulation` describes the starting state in more detail.
 
 ### Set Simulator
 
@@ -421,7 +423,7 @@ Behaviour
 ## Resource estimation
 
 These blocks count the qubits and gates a circuit needs, instead of simulating it.
-A separate page on resource estimation will describe them in detail.
+{doc}`resource-estimation` describes them in detail.
 
 ### Perform Quantum Resource Estimation
 
@@ -496,6 +498,7 @@ Circuit
 Reports
 : The number of gates that act on that many qubits.
   If there are none, it reports 0.
+  Measurements count as one-qubit operations.
 
 Notes
 : - For a number of qubits below 1, it reports "Please Select a Valid Qubit Count".
@@ -514,6 +517,7 @@ Reports
 
 Notes
 : - With SWAP decomposition enabled, `SWAP` gates are replaced by other gates, so the number is 0.
+  A `SWAP` gate with controls is counted as `CSWAP` and is not included.
 
 ### Enable or disable SWAP decomposition
 
@@ -526,7 +530,8 @@ Setting
   `Enable` or `Disable`.
 
 Behaviour
-: Sets whether the next estimation in this script replaces `SWAP` gates by three CNOT gates.
+: Sets whether the next estimation in this script replaces `SWAP` gates by three `X` gates.
+  A `SWAP` gate without controls becomes three CNOT gates; controls of the `SWAP` gate are kept.
 
 ### Enable or disable negative control substitution
 
