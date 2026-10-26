@@ -571,7 +571,7 @@ Export Circuits to MLIR :: extension
 Behaviour
 : Exports every `Quantum Circuit` script of the project, from all sprites, into one file named `quantum_circuits.mlir`.
   The browser downloads the file and shows a message.
-  A separate page on the MLIR export will describe the file and the supported blocks.
+  {doc}`mlir-export` describes the file and the supported blocks.
 
 Notes
 : - If a circuit cannot be exported, no file is downloaded and a message with the reason is shown instead.
