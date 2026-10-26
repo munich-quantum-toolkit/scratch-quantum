@@ -75,37 +75,36 @@ The qubits then continue from the collapsed state.
 ## Starting from a state
 
 By default, all qubits of a circuit start in the state $|0\rangle$.
-`Run Quantum Circuits starting from` starts all circuits with the qubits in a basis state that you choose by a number:
+`Run Quantum Circuits starting from` is meant to start all circuits in a basis state that you choose by a number:
 
 ```{scratchblocks}
 when green flag clicked
 Run Quantum Circuits starting from (5) :: extension
 ```
 
-The number is read in binary, and its digits are assigned to the qubits in the order in which the qubits are created, starting with the lowest digit.
-The qubits of the first register you create come first, followed by the qubits of the next register, and so on.
-The state `5` is `101` in binary, so the first qubit starts as 1, the second as 0, and the third as 1.
-With a register `a` of one qubit followed by a register `b` of two qubits, this means that `a[0]` is 1, `b[0]` is 0, and `b[1]` is 1.
+The intended meaning is that the binary digits of the number give the initial state, with the lowest digit on the first qubit that the circuit creates.
+The number `5` is `101` in binary, so the first qubit would start as 1, the second as 0, and the third as 1.
+The number `0` is the same as `Run Quantum Circuits`.
 
-The following circuit has one register of two qubits and reads out the starting state:
+```{important}
+This block currently has known issues.
+Its result matches the description above only in simple cases, namely when the number has at least as many binary digits as the circuit has qubits.
+In other cases, and for some numbers that you type into the block, the qubits can start in a different state than you expect, or the starting state can become too large for the simulator.
+Do not rely on this block.
+```
+
+The reliable way to start in a particular state is to start from $|0\rangle$ with `Run Quantum Circuits` and to flip the qubits that should be 1 with `X` gates at the beginning of the circuit.
+The following circuit starts the qubits in the state `101`: qubits 0 and 2 are flipped, and qubit 1 stays 0.
 
 ```{scratchblocks}
 Quantum Circuit :: hat extension
-create quantum register [q] with (2) qubits :: extension
+create quantum register [q] with (3) qubits :: extension
+apply [X v] gate to (qubit (0) of register [q] :: extension) :: extension
+apply [X v] gate to (qubit (2) of register [q] :: extension) :: extension
 say <measure (qubits of register [q] :: extension) :: extension>
 ```
 
-With `Run Quantum Circuits starting from (2)`, the sprite says `01`, because `2` is `10` in binary: qubit 0 starts as 0 and qubit 1 as 1.
-The state `0` is the same as `Run Quantum Circuits`.
-
-Some details to keep in mind:
-
-- The starting state applies to every circuit of the project.
-- If the number has more binary digits than the circuit has qubits, the remaining digits are not used by any register.
-  The extra qubits still count towards the [size limit](#size-limit).
-- Use a whole number that fits into the qubits of your circuit, which means a value below 1024 for the simulator.
-- Type the number directly into the input of the block.
-  Other ways of providing the number, such as a variable or a calculation, are not guaranteed to work.
+The sprite says `101`.
 
 ## Size limit
 

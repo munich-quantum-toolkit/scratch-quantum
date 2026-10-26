@@ -399,13 +399,12 @@ State
 
 Behaviour
 : Works like `Run Quantum Circuits`, but the qubits start in the basis state given by the number instead of $|0\rangle$.
-  The number is read in binary: the lowest digit is the first qubit, qubit 0.
-  With the state 2 (binary 10), qubit 0 starts as 0 and qubit 1 starts as 1.
+  The intended meaning is that the binary digits of the number give the initial state, with the lowest digit on the first qubit.
 
 Notes
 : - The state `0` gives the same result as `Run Quantum Circuits`.
-  - Type the number directly into the input of the block; other ways of providing it are not guaranteed to work.
-    {doc}`simulation` describes the starting state in more detail.
+  - The block currently has known issues and does not always give this result.
+    To start in a particular state, use `Run Quantum Circuits` and apply `X` gates at the start of the circuit instead; see {doc}`simulation`.
 
 ### Set Simulator
 
