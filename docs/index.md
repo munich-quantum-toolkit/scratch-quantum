@@ -50,6 +50,15 @@ quantum-basics
 ```
 
 ```{toctree}
+:caption: Reference
+:hidden:
+:maxdepth: 1
+
+blocks
+qubit-expressions
+```
+
+```{toctree}
 :caption: About
 :hidden:
 :maxdepth: 1

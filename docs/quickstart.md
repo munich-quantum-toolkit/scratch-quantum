@@ -105,4 +105,4 @@ Read {doc}`quantum-basics` for the details.
 - Replace the `H` gate with a different gate, such as `X` or `Z`, and see how the outcome changes.
 - Measure only one qubit by using `qubit (0) of register [q]` in the `measure` block instead of `qubits of register [q]`.
 - Try the exercises, which guide you through circuits, verification, resource estimation, and compilation (see the exercises page).
-- Read the block reference for all quantum blocks (see the blocks page).
+- Read the {doc}`block reference <blocks>` for all quantum blocks.
