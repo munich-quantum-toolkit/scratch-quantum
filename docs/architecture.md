@@ -122,7 +122,9 @@ The exporter does not run the circuit.
 One circuit becomes the body of `@main`; several circuits become private functions that `@main` calls in order.
 
 The class `Exporter` translates one script.
-It looks up a handler for every block by its opcode: `stmt_<opcode>` for blocks in a stack, `num_<opcode>` for number reporters, `bool_<opcode>` for conditions, and `qubits_<opcode>` for qubit inputs.
+It looks up a handler for every block by its full Scratch opcode, which for the blocks of this extension is `quantum_` followed by the opcode from `getInfo`.
+The handlers are named `stmt_<opcode>` for blocks in a stack (for example `stmt_quantum_applyGate`), `num_<opcode>` for number reporters, `bool_<opcode>` for conditions (`bool_quantum_measure`), and `qubits_<opcode>` for qubit inputs (`qubits_quantum_getQubit`).
+Standard Scratch blocks have handlers too, such as `stmt_control_repeat` and `num_operator_add`.
 Blocks without a handler cause an `MLIRExportError` that names the block, unless they are on the list of blocks that the export skips on purpose.
 `mlir-emitter.js` knows nothing about Scratch.
 It only provides fresh names for values, indentation, and the framing of functions and modules.
@@ -140,8 +142,10 @@ To add a block to the extension, work through the following steps.
 3. If the block is a new gate, extend the simulators.
    Add its matrix to the statevector simulator and decide how the resource estimator counts it.
    For a new gate kind, a new method in the interface of `Simulator` may be needed; then implement it in every simulator.
-4. Add support to the exporter with a `stmt_<opcode>` handler, or leave it out.
+4. Add support to the exporter with a handler named after the full Scratch opcode, that is `quantum_` followed by the opcode from `getInfo`: `stmt_quantum_<opcode>` for a stack block, `bool_quantum_<opcode>` for a condition, or `qubits_quantum_<opcode>` for a qubit reporter.
+   For example, a new stack block with the opcode `foo` needs the handler `stmt_quantum_foo`.
+   You can also leave the block out.
    Without a handler, the export reports the block as unsupported, which is the right behavior for blocks that have no MLIR equivalent.
-   If the block belongs to the extension but does nothing in the exported circuit, add it to the list of skipped opcodes.
+   If the block belongs to the extension but does nothing in the exported circuit, add its full opcode, for example `quantum_toMLIR`, to the list of skipped opcodes in `exporter.js`.
 5. Add tests in `test/unit/` of `scratch-vm`, next to the existing `extension_quantum_*.js` tests.
 6. Document the block in {doc}`blocks`, and, where it applies, on the pages for {doc}`running circuits <simulation>`, {doc}`resource estimation <resource-estimation>`, and the {doc}`MLIR export <mlir-export>`.

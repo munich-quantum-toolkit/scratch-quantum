@@ -125,7 +125,7 @@ To update it:
    The build consists of the HTML pages (`index.html`, `blocks-only.html`, `compatibility-testing.html`, `player.html`), their scripts and source maps (`gui.js`, `blocksonly.js`, `compatibilitytesting.js`, `player.js`, `extension-worker.js`, and the `.map` files), the `chunks/` and `static/` directories, and one `.hex` file.
    Removing the old files first prevents outdated chunks from piling up, because their file names change with their contents.
 
-   Do not delete or overwrite the files that do not belong to the build: `docs/`, `.readthedocs.yaml`, `pyproject.toml`, `uv.lock`, `.gitignore`, and `.nojekyll`.
+   Do not delete or overwrite the files that do not belong to the build: `docs/`, `README.md`, `.readthedocs.yaml`, `pyproject.toml`, `uv.lock`, `.gitignore`, and `.nojekyll`.
    The commands above leave them alone.
    Check `git status` before you commit: only build files should change.
 
