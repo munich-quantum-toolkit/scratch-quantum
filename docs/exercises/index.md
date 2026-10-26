@@ -28,7 +28,8 @@ The exercises are designed for a short workshop or a single class session.
 
 Prerequisites
 : None.
-  Exercise 1 introduces Scratch, and the other exercises explain the quantum concepts they use.
+  Exercise 1 introduces Scratch.
+  For the quantum concepts, point your students to the {doc}`../quickstart` and {doc}`../quantum-basics` pages.
 
 Time
 : About 35 minutes for exercises 2 to 5, plus the warm-up.

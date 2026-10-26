@@ -21,7 +21,7 @@ Ask the maintainers for access before you start.
 3. Check that the tests and the linter pass; see {doc}`development`.
    New code needs tests.
 4. Update the documentation if your change is visible to users: new or changed blocks, changed behavior, or new limitations.
-   The {doc}`blocks` page and the pages of the {doc}`reference <blocks>` are the first places to look.
+   The {doc}`blocks` page and the other reference pages are the first places to look.
 5. Open a pull request against the default branch of the repository: `main` in `scratch-quantum`, and `develop` in the repositories of the virtual machine and the editor.
 
 ## Commit messages

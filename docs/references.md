@@ -9,7 +9,7 @@ When you use the extension in your teaching or research, please cite:
 @inproceedings{qce_2026_01,
   title     = {{Teaching Quantum Design Automation with Block-Based Programming}},
   author    = {D. Rovara and R. Wille},
-  booktitle = {Int'l Conf. on Quantum Computing and Engineering},
+  booktitle = {IEEE International Conference on Quantum Computing and Engineering (QCE)},
   year      = {2026},
 }
 

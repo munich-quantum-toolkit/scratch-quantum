@@ -193,7 +193,7 @@ qc.x %0 : !qc.qubit
 ```
 
 The export does not merge consecutive controlled gates into larger `qc.ctrl` regions.
-You can leave that to the optimizer of `mqt-cc`.
+The optimizer of `mqt-cc` may merge them.
 
 A qubit that is both a control and a target of the same gate is an error if the export can see this from fixed indices.
 For indices that depend on variables, the check is left to the MLIR verifier.
@@ -220,7 +220,7 @@ A `n` that depends on a variable is converted with `arith.fptosi` and `arith.ind
 `if … then` and `if … then … else` become `scf.if`.
 A condition must be a measurement, a variable that holds a measurement result, a comparison with `<`, `>` or `=`, or a combination with `not`, `and` and `or`.
 A condition that is a fixed value still becomes an `scf.if` on a constant; the export does not remove the branch that is never taken.
-The optimizer of `mqt-cc` removes it.
+The optimizer of `mqt-cc` can remove it.
 
 The following circuit uses both blocks together with a variable:
 

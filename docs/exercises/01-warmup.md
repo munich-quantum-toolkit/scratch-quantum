@@ -5,7 +5,7 @@ Feel free to skip it if you have used Scratch before.*
 
 {download}`Download the template <templates/01-warmup.sb3>`
 
-To get started, please open the Scratch web-editor on [https://munich-quantum-toolkit.github.io/scratch-quantum/](https://munich-quantum-toolkit.github.io/scratch-quantum/).
+To get started, please open the editor on [https://munich-quantum-toolkit.github.io/scratch-quantum/](https://munich-quantum-toolkit.github.io/scratch-quantum/).
 From there, open the file `01-warmup.sb3` with *File → Load from your computer*.
 
 **(a)** In Scratch, programs are written by concatenating blocks under an event.

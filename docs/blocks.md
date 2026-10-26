@@ -450,7 +450,7 @@ Notes
 Reports
 : A text with the resources of all circuits.
   For every circuit, it lists the total number of qubits and, for each number of qubits a gate acts on, the gates with their counts.
-  The texts of several circuits are separated by a blank line.
+  The texts of several circuits are separated by empty lines.
   Before the first estimation, it reports "No Resource Estimate computed yet".
 
 ### Estimated Quantum Resources of Circuit
@@ -517,7 +517,7 @@ Reports
 
 Notes
 : - With SWAP decomposition enabled, `SWAP` gates are replaced by other gates, so the number is 0.
-  A `SWAP` gate with controls is counted as `CSWAP` and is not included.
+  - A `SWAP` gate with controls is counted as `CSWAP` and is not included.
 
 ### Enable or disable SWAP decomposition
 

@@ -105,6 +105,7 @@ The editor at {{ editor_url }} is a build of `scratch-gui` that is committed to 
 To update it:
 
 1. Build the virtual machine in `scratch-vm` (`npm run build`), as described above.
+   Build it from the branch you release, normally `develop`, with all features and fixes that you want to ship merged.
    Make sure that the link to the virtual machine is in place.
 
 2. In `scratch-gui`, build the editor:
