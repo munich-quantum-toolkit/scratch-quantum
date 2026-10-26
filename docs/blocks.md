@@ -404,6 +404,7 @@ Behaviour
 Notes
 : - The state `0` gives the same result as `Run Quantum Circuits`.
   - The block currently has known issues and does not always give this result.
+    It gives this state reliably only when the number has at least as many binary digits as the circuit has qubits; other values, and some typed numbers, can give wrong or too large states.
     To start in a particular state, use `Run Quantum Circuits` and apply `X` gates at the start of the circuit instead; see {doc}`simulation`.
 
 ### Set Simulator

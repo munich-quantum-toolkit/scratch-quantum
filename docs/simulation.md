@@ -85,6 +85,7 @@ Run Quantum Circuits starting from (5) :: extension
 The intended meaning is that the binary digits of the number give the initial state, with the lowest digit on the first qubit that the circuit creates.
 The number `5` is `101` in binary, so the first qubit would start as 1, the second as 0, and the third as 1.
 The number `0` is the same as `Run Quantum Circuits`.
+The starting state applies to every circuit that the block starts, so each circuit starts from the same state.
 
 ```{important}
 This block currently has known issues.
