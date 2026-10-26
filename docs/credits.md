@@ -7,6 +7,14 @@ The quantum extension, its simulators, the resource estimation, and the MLIR exp
 
 The blocks in these pages are drawn with [scratchblocks](https://github.com/scratchblocks/scratchblocks).
 
+## Licenses
+
+The editor, and so the web app that is deployed from this repository, is built from forks of the `scratch-vm` and `scratch-gui` repositories of the Scratch Foundation.
+Both upstream repositories are licensed under the GNU Affero General Public License v3.0 (AGPL-3.0-only), and the forks keep that license.
+You can read the license texts in the repositories of [`scratch-vm`](https://github.com/scratchfoundation/scratch-vm/blob/develop/LICENSE) and [`scratch-gui`](https://github.com/scratchfoundation/scratch-gui/blob/develop/LICENSE).
+
+[scratchblocks](https://github.com/scratchblocks/scratchblocks), which draws the blocks in these pages, is licensed under the MIT License, Copyright © Tim Radvan.
+
 ## Trademarks
 
 > The Scratch trademarks, including the Scratch name, logo, the Scratch Cat, Gobo, Pico, Nano, Tera and Giga graphics (the "Marks"), are property of the Massachusetts Institute of Technology (MIT). Marks may not be used to endorse or promote products derived from this software without specific prior written permission.

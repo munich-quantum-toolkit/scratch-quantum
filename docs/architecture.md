@@ -17,8 +17,10 @@ The MLIR export is separate from this: it reads the blocks without running them.
 ```text
           blocks of a Quantum Circuit script
                   |                  |
-         run (green flag,          Export Circuits
-         Run Quantum Circuits)        to MLIR
+      run (click a script,           Export Circuits
+      Run Quantum Circuits,             to MLIR
+      Perform Quantum
+      Resource Estimation)
                   |                  |
           handlers in index.js    exporter.js
                   |                  |
@@ -37,6 +39,7 @@ The MLIR export is separate from this: it reads the blocks without running them.
 | `simulator.js` | The base class `Simulator` that all simulators extend, and the class `Control`. |
 | `statevector-simulator.js` | The simulator that calculates the full quantum state. |
 | `resource-estimator.js` | The simulator that counts the gates a circuit uses. |
+| `symbolic-simulator.js` | A simulator that `index.js` does not use at the moment. |
 | `qubit-expression.js` | Parser for the text of qubit expressions, and the validation of register names and qubit indices. |
 | `complex-math.js` | Complex numbers, matrices, and vectors for the statevector simulator. |
 | `utils.js` | Helpers shared by the simulators: the classes `Register` and `QubitAccess`, and the function `targetAccess`. |

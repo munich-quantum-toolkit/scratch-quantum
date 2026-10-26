@@ -32,7 +32,7 @@ Developed by the Chair for Design Automation, Technical University of Munich, as
 - Export of circuits to the MQT `qc` MLIR dialect
 - Ready-to-use exercises for teaching quantum computing
 
-If you have any questions, feel free to create a [discussion](https://github.com/munich-quantum-toolkit/scratch-quantum/discussions) or an [issue](https://github.com/munich-quantum-toolkit/scratch-quantum/issues) on [GitHub](https://github.com/munich-quantum-toolkit/scratch-quantum).
+If you have any questions, feel free to create an [issue](https://github.com/munich-quantum-toolkit/scratch-quantum/issues) on [GitHub](https://github.com/munich-quantum-toolkit/scratch-quantum).
 
 ## Contributors and Supporters
 
