@@ -64,8 +64,10 @@ Notes
 : - The block only builds the text.
     It does not check whether the register exists or how many qubits it has.
   - Decimal numbers are cut to a whole number: `1.7` gives `q[1]`.
-  - An index beyond the end of a register is not detected: it refers to a qubit of the register that follows, or, behind the last qubit, to no qubit at all.
-    Blocks ignore qubits that do not exist.
+  - An index beyond the end of a register is not detected.
+    It addresses the qubits of the register created after it: with `a` and `b` of two qubits each, `a[3]` is `b[1]`.
+    Only an index beyond the last qubit of the circuit, or a register name that does not exist, addresses no qubit, and blocks ignore it.
+    Stay within 0 to the size of the register minus 1.
 
 ### Qubits of register
 
@@ -120,7 +122,7 @@ Notes
 : - The default `/` means "no qubit".
     With it, the console shows "Invalid qubit value" and nothing happens.
   - If the input is not a qubit expression, such as `hello`, the console shows a message and nothing happens.
-  - Qubits that do not exist are ignored.
+  - A qubit beyond the last qubit of the circuit is ignored; for an index beyond the end of a register, see [Qubit of register](#qubit-of-register).
   - `negated control` has no effect in the target input: the gate is applied to the qubit as if it were not negated.
 
 ```{scratchblocks}
@@ -338,7 +340,7 @@ Notes
     In a condition, a single-qubit result counts as false for `0` and true for `1`, because Scratch treats the text `0` as false.
     For several qubits, use the text result instead.
   - With the default `/`, the console shows "Invalid qubit value" and the block reports nothing.
-  - A qubit that does not exist adds the text `undefined` to the result.
+  - A qubit beyond the last qubit of the circuit adds the text `undefined` to the result.
   - Enclosing `controlled on` blocks do not affect the measurement.
 
 ```{scratchblocks}

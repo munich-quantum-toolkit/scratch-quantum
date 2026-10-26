@@ -35,7 +35,9 @@ The text must follow these rules:
 If the text does not follow the rules, the console shows a message such as `Invalid qubit format, expected "register[index]"` or "Qubit index must be a non-negative integer".
 Blocks report such problems only in the browser console, not in the editor.
 For text without brackets, such as `hello`, nothing else happens.
-Qubits that do not exist, such as `q[5]` in a register with two qubits, are ignored by gates.
+The index is not checked against the size of the register: an index beyond the end of a register addresses the qubits of the register created after it.
+Only an index beyond the last qubit of the circuit is ignored by gates.
+Stay within 0 to the size of the register minus 1; see [Qubit of register](blocks.md#qubit-of-register).
 
 The `qubit of register` reporter does not check its input: a negative index results in `q[-1]`, which causes the error message when a gate uses it.
 
