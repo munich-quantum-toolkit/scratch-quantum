@@ -244,6 +244,6 @@ The estimator also starts every qubit in the state 0; there is no counterpart to
 
 ## Next steps
 
-- Try the exercises on resource estimation and compilation (see the exercises page) to see how the switches change the counts.
+- Try the exercises on resource estimation and compilation (see the {doc}`exercises <exercises/index>`) to see how the switches change the counts.
 - Read about the estimation blocks in the {doc}`block reference <blocks>`.
 - Read {doc}`simulation` for running circuits on the simulator.

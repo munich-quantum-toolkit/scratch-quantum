@@ -27,7 +27,7 @@ say <measure (qubit (0) of register [q] :: extension) :: extension>
 ## Where to start
 
 We recommend you to start with the {doc}`quickstart` if you are new to the extension and want to build your first circuits.
-If you teach quantum computing, have a look at the exercises that you can use in your classroom.
+If you teach quantum computing, have a look at the {doc}`exercises <exercises/index>` that you can use in your classroom.
 If you are interested in research, read about the {doc}`resource estimation <resource-estimation>` and the {doc}`MLIR export <mlir-export>`.
 If you want to extend the extension or run the editor yourself, read the development guide.
 
@@ -47,6 +47,14 @@ self
 
 quickstart
 quantum-basics
+```
+
+```{toctree}
+:caption: Exercises
+:hidden:
+:maxdepth: 2
+
+exercises/index
 ```
 
 ```{toctree}
