@@ -219,7 +219,9 @@ After `[Enable v] SWAP decomposition`, it reports 0, and `Estimated (2) Qubit Ga
 ## Measurements during estimation
 
 The estimator does not calculate the quantum state, but a `measure` block still has to report a value, which your script might use.
-To do so, the estimator keeps a simple guess for every qubit: it is either known to be 0 or 1, or it is unknown.
+To do so, the estimator uses _stochastic tracing_ {cite:p}`qce_2026_01`: it keeps a simple guess for every qubit, which is either known to be 0 or 1, or unknown.
+At a measurement of an unknown qubit, it picks an outcome at random.
+Because it never builds the full quantum state, the estimator also handles circuits that are far too large to simulate.
 All qubits start as 0.
 The following rules update the guesses:
 

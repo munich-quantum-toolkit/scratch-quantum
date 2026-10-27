@@ -15,6 +15,10 @@ The quantum computing extension adds quantum computing blocks to the Scratch edi
 With it, you build quantum circuits by snapping blocks together, run them on a built-in simulator, estimate the resources they need, and export them to the MQT compiler toolchain.
 Developed by the Chair for Design Automation, Technical University of Munich, as part of the [_Munich Quantum Toolkit (MQT)_](https://mqt.readthedocs.io).
 
+The extension is built to teach _quantum design automation_ (compilation, resource estimation, and verification), which is hard to learn from textual representations.
+Because quantum circuits live inside normal Scratch programs, loops, conditionals, and variables work around and inside them, instead of unrolling a loop into a long circuit as in circuit editors.
+Simulation and resource estimation run in the same place, and the MLIR export opens the path to the wider quantum software ecosystem; see the [paper](#cite-this) for details.
+
 <p align="center">
   <a href="https://mqt.readthedocs.io/projects/scratch-quantum">
   <img width=30% src="https://img.shields.io/badge/documentation-blue?style=for-the-badge&logo=read%20the%20docs" alt="Documentation" />

@@ -2,7 +2,9 @@
 
 These five exercises introduce quantum computing with the quantum computing extension.
 You work through them in the Scratch editor, with one template project per exercise.
-No previous knowledge of quantum computing is needed.
+Together, they follow one quantum design automation workflow: you build a circuit, verify it, estimate its resources, and compile and optimize it.
+Basic knowledge of qubits and gates is assumed; the {doc}`../quantum-basics` page covers what you need.
+You need no previous experience with Scratch or with design automation.
 
 Each exercise page starts with a download link for its template.
 Open the [editor](https://munich-quantum-toolkit.github.io/scratch-quantum/), then choose _File → Load from your computer_ to open the template.
@@ -25,11 +27,12 @@ The {doc}`quickstart <../quickstart>` shows you how to build a first circuit ste
 ## For educators
 
 The exercises are designed for a short workshop or a single class session.
+They were evaluated in a user study with 24 students in two formats, a supervised lab session and a take-home assignment, so both formats work {cite:p}`qce_2026_01`.
 
 Prerequisites
-: None.
-Exercise 1 introduces Scratch.
-For the quantum concepts, point your students to the {doc}`../quickstart` and {doc}`../quantum-basics` pages.
+: Basic knowledge of qubits and gates is assumed; the {doc}`../quantum-basics` page covers what is needed.
+Previous experience with Scratch or with design automation is not needed, because exercise 1 introduces Scratch.
+For the first circuits, point your students to the {doc}`../quickstart` page.
 
 Pacing
 : If a group takes longer on an exercise, it can move on to the next exercise without finishing.

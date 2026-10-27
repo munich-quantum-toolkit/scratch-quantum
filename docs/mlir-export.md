@@ -48,6 +48,11 @@ mqt-cc --emit=qir-adaptive quantum_circuits.mlir
 
 With `--emit=qc`, you can check that the file parses.
 
+The option `--emit` selects the output format of `mqt-cc`.
+It offers `qc` (the default), `qco`, `qco-optimized`, `qir-base`, `qir-adaptive`, `openqasm3`, and `jeff`.
+Through OpenQASM, QIR, and the jeff exchange format, the exported programs can reach other toolchains: purely quantum programs can reach Qiskit, and through jeff, programs can reach Catalyst and TKET {cite:p}`qce_2026_01`.
+Not every program converts to every format; for example, a program with control flow needs `qir-adaptive` or `jeff`.
+
 The `qir-adaptive` lowering has one known limitation: it fails if a measurement result is carried out of a `repeat` loop in a variable and then used by an `if` block; see [Limitations](#limitations).
 
 ## Example

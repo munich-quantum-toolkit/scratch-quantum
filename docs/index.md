@@ -24,6 +24,34 @@ apply [X v] gate to (qubit (1) of register [q] :: extension) :: extension
 say <measure (qubit (0) of register [q] :: extension) :: extension>
 ```
 
+## Why this extension
+
+The extension is built to teach _quantum design automation_: the methods that compile, estimate the resources of, and verify quantum circuits so that nobody has to do it by hand.
+These methods are hard to learn from textual representations such as OpenQASM or MLIR, and graphical circuit editors do not connect to them.
+Blocks make them approachable, because you see and change a circuit directly {cite:p}`qce_2026_01`.
+
+Your circuits live inside normal Scratch programs.
+Loops, conditionals and variables work around and inside a circuit, so a repeated step is a `repeat` block instead of a long circuit that is unrolled by hand.
+The following script prepares a GHZ state on four qubits.
+The counter variable `i` selects the target of each controlled X gate, so a larger GHZ state only needs a larger register and more repetitions:
+
+```{scratchblocks}
+Quantum Circuit :: hat extension
+create quantum register [q] with (4) qubits :: extension
+apply [H v] gate to (qubit (0) of register [q] :: extension) :: extension
+set [i v] to (0)
+repeat (3)
+controlled on (qubit (0) of register [q] :: extension) {
+apply [X v] gate to (qubit ((i) + (1)) of register [q] :: extension) :: extension
+} :: extension
+change [i v] by (1)
+end
+say <measure (qubits of register [q] :: extension) :: extension>
+```
+
+Simulation and resource estimation run in the same editor, and you switch between them by exchanging a single block.
+The {doc}`MLIR export <mlir-export>` then opens the path to the wider quantum software ecosystem, so you can continue with the circuits you built.
+
 ## Where to start
 
 We recommend that you start with the {doc}`quickstart` if you are new to the extension and want to build your first circuits.
