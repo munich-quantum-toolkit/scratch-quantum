@@ -758,7 +758,8 @@ const translateCircuit = function (circuit, signature, registersAsArguments) {
         const exporter = new Exporter(circuit.blocks, Object.assign({}, circuit, {registersAsArguments}));
         const body = exporter.run(circuit.hatId);
         const registers = [...exporter.registers.values()];
-        const comment = `'Quantum Circuit' script of sprite "${circuit.spriteName}"`;
+        const spriteName = String(circuit.spriteName).replace(/[\r\n]+/g, ' '); // keep the comment on one line
+        const comment = `'Quantum Circuit' script of sprite "${spriteName}"`;
         return {text: body.toFunction(signature(registers), comment), registers};
     } catch (e) {
         if (e instanceof MLIRExportError) {

@@ -145,3 +145,19 @@ test('exporting without circuits is an error without a block', t => {
     }
     t.end();
 });
+
+test('line breaks in sprite names stay inside the comment', t => {
+    const first = new ScriptBuilder();
+    const second = new ScriptBuilder();
+    const mlir = exportProjectToMLIR([
+        circuit(first, first.script(first.createRegister('q', 1)), 'Sprite\nfunc.func @evil()'),
+        circuit(second, second.script(second.createRegister('q', 1)), 'Sprite\r\n2')
+    ]);
+    const lines = mlir.split('\n').map(line => line.trim());
+    t.notOk(lines.some(line => line.startsWith('func.func @evil()')), 'no line starts with the text after the break');
+    t.notOk(lines.some(line => line.startsWith('2"')), 'CRLF is replaced too');
+    t.ok(lines.includes('// \'Quantum Circuit\' script of sprite "Sprite func.func @evil()"'));
+    t.ok(lines.includes('// \'Quantum Circuit\' script of sprite "Sprite 2"'));
+    validateWithMqtCc(t, mlir);
+    t.end();
+});
