@@ -1,7 +1,6 @@
 # Warming up with Scratch
 
-_This exercise does not have a time estimate.
-Feel free to skip it if you have used Scratch before._
+_Feel free to skip this exercise if you have used Scratch before._
 
 {download}`Download the template <templates/01-warmup.sb3>`
 

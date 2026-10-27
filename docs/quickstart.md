@@ -81,9 +81,7 @@ say (result)
 
 ## Run it
 
-The green flag does not start a `Quantum Circuit` script.
-The `Run Quantum Circuits` block starts all `Quantum Circuit` scripts of the project together, and it is the intended way to run circuits.
-Clicking a single `Quantum Circuit` script runs just that circuit.
+Now run the circuit from a green-flag script.
 Build this second script next to the circuit:
 
 ```{scratchblocks}
@@ -99,6 +97,10 @@ This is entanglement.
 The Hadamard gate puts qubit 0 into an equal superposition of 0 and 1, and the controlled `X` gate copies this choice to qubit 1.
 The two qubits are then perfectly correlated: when you measure one, the other one always gives the same result.
 Read {doc}`quantum-basics` for the details.
+
+The green flag does not start a `Quantum Circuit` script itself.
+The `Run Quantum Circuits` block starts every `Quantum Circuit` script of the project, which is why the green-flag script needs it.
+As a shortcut, you can also click a single `Quantum Circuit` script to run just that circuit.
 
 ## What next
 

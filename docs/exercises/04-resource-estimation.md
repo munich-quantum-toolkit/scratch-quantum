@@ -1,7 +1,5 @@
 # Quantum resource estimation
 
-_Estimated time: 10 minutes._
-
 {download}`Download the template <templates/04-resource-estimation.sb3>`
 
 As programs get larger, simulation becomes impossible.

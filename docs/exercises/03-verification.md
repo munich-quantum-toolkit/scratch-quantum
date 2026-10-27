@@ -1,7 +1,5 @@
 # Quantum circuit verification
 
-_Estimated time: 10 minutes._
-
 {download}`Download the template <templates/03-verification.sb3>`
 
 Open the editor at [https://munich-quantum-toolkit.github.io/scratch-quantum/](https://munich-quantum-toolkit.github.io/scratch-quantum/), then choose _File → Load from your computer_ and open the file `03-verification.sb3`.
@@ -30,9 +28,14 @@ This consists of the following steps:
   apply [H v] gate to (qubit (0) of register [q] :: extension) :: extension
   ```
 
-- At the end of the circuit, measure both qubits and output their results.
-  - Are they both `0`? ⇒ the right circuit inverted the left circuit, returning the qubits to the $|00\rangle$ state. The circuits are equivalent.
-  - Is at least one of them not `0`? ⇒ the circuits are not equivalent.
+- At the end of the circuit, measure all qubits at once and output the result.
+
+  ```{scratchblocks}
+  say <measure (qubits of register [q] :: extension) :: extension>
+  ```
+
+  - Is it `00`? ⇒ the right circuit inverted the left circuit, returning the qubits to the $|00\rangle$ state. The circuits are equivalent.
+  - Is it anything else? ⇒ the circuits are not equivalent.
 
 **(c)** Modify the starting circuit slightly and check if your program now correctly finds non-equivalence.
 (It may be necessary to execute the program multiple times to receive a `1` output due to randomness).

@@ -11,7 +11,8 @@ A bit is either 0 or 1; a qubit can also be in a combination of both, as describ
 A quantum computer works on many qubits at once, and a circuit starts with all qubits in the state $|0\rangle$.
 
 In the extension, qubits live in registers.
-A register has a name and a number of qubits, and you refer to a qubit by its index, starting at 0.
+A register is basically an array of individual qubits, which you create with the `create quantum register` block.
+It has a name and a number of qubits, and you refer to a qubit by its index, starting at 0.
 The `qubits of register` block refers to all qubits of a register at once.
 
 ```{scratchblocks}
@@ -23,7 +24,8 @@ apply [X v] gate to (qubit (2) of register [q] :: extension) :: extension
 ## Basis states and measurement
 
 The states $|0\rangle$ and $|1\rangle$ are the basis states, the quantum counterparts of the classical values 0 and 1.
-Several qubits have basis states such as $|00\rangle$, $|01\rangle$, $|10\rangle$, and $|11\rangle$.
+You can concatenate several qubits to form bigger basis states, such as $|00\rangle$, $|01\rangle$, $|10\rangle$, and $|11\rangle$.
+In such a state, the first digit belongs to qubit 0, the second to qubit 1, and so on.
 
 A qubit can only reveal a classical value through measurement.
 Measurement is probabilistic: depending on the state, you get 0 or 1 with some probability.
@@ -68,8 +70,10 @@ Gates change the state of qubits.
 The `apply gate to` block offers six single-qubit gates:
 
 - `X` is the bit flip: it swaps $|0\rangle$ and $|1\rangle$, like a quantum NOT.
-- `Y` swaps $|0\rangle$ and $|1\rangle$ and adds a phase.
-- `Z` is the phase flip: it leaves $|0\rangle$ unchanged and multiplies $|1\rangle$ by $-1$.
+- `Y` flips the qubit like `X` and also flips the phase like `Z`: it turns $|0\rangle$ into $i|1\rangle$ and $|1\rangle$ into $-i|0\rangle$.
+  In other words, $Y = iXZ$.
+  On its own, a measurement shows only the bit flip; the extra phase matters when the qubit interferes later, for example with an `H` gate.
+- `Z` is the phase flip: it leaves $|0\rangle$ unchanged and flips the sign of $|1\rangle$, which means it multiplies $|1\rangle$ by $-1$.
 - `H` is the Hadamard gate: it turns $|0\rangle$ into $(|0\rangle+|1\rangle)/\sqrt{2}$ and $|1\rangle$ into $(|0\rangle-|1\rangle)/\sqrt{2}$.
 - `S` is a phase gate: it multiplies $|1\rangle$ by $i$, a quarter turn.
 - `T` is a phase gate: it multiplies $|1\rangle$ by $e^{i\pi/4}$, an eighth of a turn.
@@ -106,7 +110,7 @@ apply [X v] gate to (qubit (1) of register [q] :: extension) :: extension
 Both qubits are now 1.
 If qubit 0 were left at 0, the controlled `X` would do nothing.
 
-Controlled gates are what makes qubits entangled.
+Controlled gates are what make qubits entangled in these circuits.
 If the control is in superposition, the target follows it, and the two qubits are in a joint state $(|00\rangle+|11\rangle)/\sqrt{2}$ that you cannot describe qubit by qubit.
 Measuring one of them determines the other one; the {doc}`quickstart` builds this circuit.
 
@@ -155,4 +159,4 @@ apply U3 gate to (qubit (0) of register [q] :: extension) with angles (90) (0) (
 ## Learn more
 
 - The [Munich Quantum Toolkit documentation](https://mqt.readthedocs.io) describes the tools around the extension.
-- The [IBM Quantum Learning platform](https://quantum.cloud.ibm.com/learning) offers free courses that start from the basics.
+- The textbook M. A. Nielsen and I. L. Chuang, _Quantum Computation and Quantum Information_ (Cambridge University Press), is a thorough introduction to the field.

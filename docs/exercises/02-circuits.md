@@ -1,7 +1,5 @@
 # Quantum circuits with Scratch
 
-_Estimated time: 5 minutes._
-
 {download}`Download the template <templates/02-circuits.sb3>`
 
 Open the editor at [https://munich-quantum-toolkit.github.io/scratch-quantum/](https://munich-quantum-toolkit.github.io/scratch-quantum/), then choose _File → Load from your computer_ and open the file `02-circuits.sb3`.
@@ -34,13 +32,11 @@ Run Quantum Circuits :: extension
 ```
 
 **(b)** Verify the entanglement by measuring qubit 1 as well.
-Output both measurement results (either by using two "say" blocks, or by using the "join" operation from the "Operators" tab to concatenate them).
-If the qubits are entangled, they should both output the same value.
+Use the `measure` block with `qubits of register [q]`, which measures all qubits at once and reports one character per qubit, starting with qubit 0.
+If the qubits are entangled, the result is either `00` or `11`.
 
 ```{scratchblocks}
-<measure (qubit (1) of register [q] :: extension) :: extension>
-
-(join [apple] [banana])
+<measure (qubits of register [q] :: extension) :: extension>
 ```
 
 **(c)** Play around with the circuit.
