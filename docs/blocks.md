@@ -2,7 +2,7 @@
 
 This page describes every block of the "Quantum" extension.
 The blocks are grouped as in the block palette, from top to bottom.
-The palette uses several shades of blue for the groups; these pages draw all quantum blocks in the main colour.
+The blocks on these pages use the same colours as in the editor's palette.
 
 Several blocks take a qubit as input.
 You fill such an input with the `qubit of register` reporter or with typed text such as `q[0]`; see {doc}`qubit-expressions` for the details.

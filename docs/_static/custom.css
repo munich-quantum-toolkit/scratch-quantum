@@ -54,13 +54,16 @@ body:not([data-theme="light"]) .highlight .gp {
 }
 
 /* Scratch blocks (docs/_ext/scratchblocks.py): show extension blocks in the quantum extension's blue
-   instead of scratchblocks' generic extension green. */
+   instead of scratchblocks' generic extension green. scratchblocks-init.js then gives each quantum block its own
+   colour from the extension. */
 svg.scratchblocks-style-scratch3
   .sb3-extension:not(.sb3-input-number):not(.sb3-input-string) {
   fill: #0065bd;
   stroke: #003359;
 }
 
+/* Dropdowns use the extension's secondary colour, as in the editor. */
+svg.scratchblocks-style-scratch3 .sb3-extension.sb3-input-dropdown,
 svg.scratchblocks-style-scratch3 .sb3-extension-alt {
   fill: #005293;
 }
