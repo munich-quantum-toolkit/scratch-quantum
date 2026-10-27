@@ -3,6 +3,7 @@
 These five exercises introduce quantum computing with the quantum computing extension.
 You work through them in the Scratch editor, with one template project per exercise.
 Together, they follow one quantum design automation workflow: you build a circuit, verify it, estimate its resources, and compile and optimize it.
+The guide {doc}`../design-automation` walks through the same workflow on a single circuit.
 Basic knowledge of qubits and gates is assumed; the {doc}`../quantum-basics` page covers what you need.
 You need no previous experience with Scratch or with design automation.
 

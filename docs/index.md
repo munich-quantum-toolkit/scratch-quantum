@@ -57,6 +57,7 @@ The {doc}`MLIR export <mlir-export>` then opens the path to the wider quantum so
 We recommend that you start with the {doc}`quickstart` if you are new to the extension and want to build your first circuits.
 If you teach quantum computing, have a look at the {doc}`exercises <exercises/index>` that you can use in your classroom.
 If you are interested in research, read about the {doc}`resource estimation <resource-estimation>` and the {doc}`MLIR export <mlir-export>`.
+If you teach or research quantum design automation, the guide {doc}`design-automation` walks through compilation, resource estimation, and verification on one circuit.
 If you want to change the extension or run the editor yourself, read the {doc}`development guide <development>`.
 
 If you are interested in the background of the extension, have a look at the publications in the {doc}`publication list <references>`.
@@ -75,6 +76,7 @@ self
 
 quickstart
 quantum-basics
+design-automation
 ```
 
 ```{toctree}
