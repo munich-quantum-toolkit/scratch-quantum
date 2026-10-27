@@ -5,7 +5,7 @@ const {QubitLimitError} = require('./statevector-simulator');
 const {ResourceEstimator, ResourceEstimatorSettings} = require('./resource-estimator');
 const {AST, LeafNode, NegatedNode, AndNode, validateRegisterName, validateQubitIndex} =
     require('./qubit-expression');
-const {exportToMLIR, MLIRExportError} = require('./exporter');
+const {exportProjectToMLIR, MLIRExportError} = require('./exporter');
 const {downloadTextFile} = require('./download');
 
 const error = function (message) {
@@ -823,21 +823,24 @@ class QuantumExtension {
     }
 
     toMLIR (_args, util) {
-        const target = util.target;
-        const fileName = `${target.getName()}_circuit.mlir`;
+        const fileName = 'quantum_circuits.mlir';
         let mlir;
         try {
-            mlir = exportToMLIR(target.blocks, util.thread.topBlock, {
-                spriteName: target.getName(),
-                lookupVariable: id => target.lookupVariableById(id)
-            });
+            mlir = exportProjectToMLIR(this._collectCircuits());
         } catch (e) {
             if (e instanceof MLIRExportError) {
-                console.error(`MLIR export failed at block ${e.blockId}: ${e.message}`);
-                if (e.blockId) {
-                    this.runtime.visualReport(e.blockId, e.message);
+                const blockId = e.blockId || util.thread.peekStack();
+                const where = e.spriteName ? ` in sprite "${e.spriteName}"` : '';
+                console.error(`MLIR export failed${where} at block ${blockId}: ${e.message}`);
+                this._notify(`MLIR export failed${where}: ${e.message}`);
+                if (blockId) {
+                    // The GUI throws if the block is not in the sprite being edited; never let that escape.
+                    try {
+                        this.runtime.visualReport(blockId, e.message);
+                    } catch (reportError) {
+                        console.error(reportError);
+                    }
                 }
-                this._notify(`MLIR export failed: ${e.message}`);
             } else {
                 console.error(e);
                 this._notify('MLIR export failed (internal error), see console');
@@ -851,7 +854,22 @@ class QuantumExtension {
             this._notify('MLIR export failed (internal error), see console');
             return;
         }
-        this._notify(`Exported circuit to ${fileName}`);
+        this._notify(`Exported circuits to ${fileName}`);
+    }
+
+    // All 'Quantum Circuit' scripts of the project (clones excluded), in the order 'Run Quantum Circuits' uses.
+    _collectCircuits () {
+        const circuits = [];
+        this.runtime.allScriptsByOpcodeDo('quantum_quantumEvaluate', (script, target) => {
+            if (!target.isOriginal) return;
+            circuits.push({
+                blocks: target.blocks,
+                hatId: script.blockId,
+                spriteName: target.getName(),
+                lookupVariable: id => target.lookupVariableById(id)
+            });
+        });
+        return circuits;
     }
 
     _download (fileName, text) {

@@ -1,5 +1,5 @@
 const {AST} = require('./qubit-expression');
-const {MLIREmitter} = require('./mlir-emitter');
+const {MLIREmitter, buildModule} = require('./mlir-emitter');
 
 const QUBIT = '!qc.qubit';
 const GATES = {X: 'x', Y: 'y', Z: 'z', H: 'h', S: 's', T: 't'};
@@ -41,7 +41,7 @@ const isSkipped = opcode => SKIPPED_PREFIXES.some(prefix => opcode.startsWith(pr
 const variableId = block => block.fields.VARIABLE.id;
 
 /**
- * Translates one 'Quantum Circuit' script into a `qc` MLIR module.
+ * Translates one 'Quantum Circuit' script into the body of a `qc` MLIR function (see `MLIREmitter.toFunction`).
  *
  * Handlers are looked up by opcode: `stmt_<opcode>` for stack blocks, `num_<opcode>` for reporters
  * used as numbers, `bool_<opcode>` for conditions and `qubits_<opcode>` for qubit inputs.
@@ -49,8 +49,9 @@ const variableId = block => block.fields.VARIABLE.id;
 class Exporter {
     constructor (blocks, options) {
         this.blocks = blocks;
-        this.spriteName = options.spriteName;
         this.lookupVariable = options.lookupVariable;
+        // Registers are function arguments: record them, but leave allocation to the caller.
+        this.registersAsArguments = Boolean(options.registersAsArguments);
         this.emit = new MLIREmitter();
         this.registers = new Map(); // register name -> {name, size, ssa, type}
         this.controlStack = []; // one array of qubit references per enclosing 'controlled on'
@@ -62,14 +63,17 @@ class Exporter {
     run (hatId) {
         const hat = this.block(hatId);
         if (!hat || hat.opcode !== 'quantum_quantumEvaluate') {
-            throw new MLIRExportError('Place the export block inside a \'Quantum Circuit\' script.', hatId);
+            throw new MLIRExportError('Only \'Quantum Circuit\' scripts can be exported to MLIR.', hatId);
         }
         this.inferVariableTypes(hat.next);
         this.statements(hat.next);
+        if (this.registersAsArguments) {
+            return this.emit;
+        }
         for (const register of [...this.registers.values()].reverse()) {
             this.emit.line(`memref.dealloc ${register.ssa} : ${register.type}`);
         }
-        return this.emit.toModule(`Exported from Scratch sprite "${this.spriteName}" by the MQT quantum extension`);
+        return this.emit;
     }
 
     // ---- block access ------------------------------------------------------------------------
@@ -177,7 +181,9 @@ class Exporter {
             ssa: this.emit.fresh(name),
             type: `memref<${size.constant}x${QUBIT}>`
         };
-        this.emit.line(`${register.ssa} = memref.alloc() {mqt.register_name = "${name}"} : ${register.type}`);
+        if (!this.registersAsArguments) {
+            this.emit.line(`${register.ssa} = memref.alloc() {mqt.register_name = "${name}"} : ${register.type}`);
+        }
         this.registers.set(name, register);
     }
 
@@ -734,16 +740,82 @@ for (const opcode of ['math_positive_number', 'math_whole_number', 'math_integer
     Exporter.prototype[`num_${opcode}`] = Exporter.prototype.num_math_number;
 }
 
+const MODULE_HEADER = 'Exported from Scratch by the MQT quantum extension';
+const ENTRY_POINT = '@main() attributes {mqt.entry_point}';
+
 /**
- * Export the 'Quantum Circuit' script starting at `hatId` to the MQT `qc` MLIR dialect.
+ * Translate one circuit into a function.
+ * @param {object} circuit The circuit ({blocks, hatId, spriteName, lookupVariable}).
+ * @param {function(Array.<object>): string} signature Builds the function signature (e.g. `private @circuit_1()`)
+ *     from the circuit's registers.
+ * @param {boolean} registersAsArguments Whether the registers are function arguments instead of being allocated.
+ * @return {{text: string, registers: Array.<{name: string, size: number, ssa: string, type: string}>}} The
+ *     function's text and the circuit's registers in creation order.
+ */
+const translateCircuit = function (circuit, signature, registersAsArguments) {
+    try {
+        const exporter = new Exporter(circuit.blocks, Object.assign({}, circuit, {registersAsArguments}));
+        const body = exporter.run(circuit.hatId);
+        const registers = [...exporter.registers.values()];
+        const spriteName = String(circuit.spriteName).replace(/[\r\n]+/g, ' '); // keep the comment on one line
+        const comment = `'Quantum Circuit' script of sprite "${spriteName}"`;
+        return {text: body.toFunction(signature(registers), comment), registers};
+    } catch (e) {
+        if (e instanceof MLIRExportError) {
+            e.spriteName = circuit.spriteName;
+        }
+        throw e;
+    }
+};
+
+/**
+ * Export 'Quantum Circuit' scripts to one MQT `qc` MLIR module. A single circuit becomes the body of the
+ * `@main` entry point. Several circuits become private functions `@circuit_<k>` that take their registers as
+ * arguments, because only the entry point may allocate qubits: `@main` allocates each circuit's registers, calls
+ * the circuit and deallocates them again, circuit by circuit.
+ * @param {Array.<{blocks: {getBlock: function(string): object}, hatId: string, spriteName: string,
+ *     lookupVariable: function(string): ?object}>} circuits The circuits, each with the block container of its
+ *     sprite, the ID of its 'Quantum Circuit' hat, the sprite name and a lookup from variable ID to the Scratch
+ *     variable ({name, value}).
+ * @return {string} The MLIR module.
+ */
+const exportProjectToMLIR = function (circuits) {
+    if (circuits.length === 0) {
+        throw new MLIRExportError('There are no \'Quantum Circuit\' scripts to export.', null);
+    }
+    if (circuits.length === 1) {
+        return buildModule(MODULE_HEADER, [translateCircuit(circuits[0], () => ENTRY_POINT, false).text]);
+    }
+    const translated = circuits.map((circuit, i) => translateCircuit(circuit, registers => {
+        const params = registers.map(register => `${register.ssa}: ${register.type}`);
+        return `private @circuit_${i + 1}(${params.join(', ')})`;
+    }, true));
+    const main = new MLIREmitter();
+    translated.forEach(({registers}, i) => {
+        const values = registers.map(register => {
+            const name = `circuit_${i + 1}_${register.name}`;
+            const value = main.fresh(name);
+            main.line(`${value} = memref.alloc() {mqt.register_name = "${name}"} : ${register.type}`);
+            return value;
+        });
+        const types = registers.map(register => register.type);
+        main.line(`func.call @circuit_${i + 1}(${values.join(', ')}) : (${types.join(', ')}) -> ()`);
+        for (let j = registers.length - 1; j >= 0; j--) {
+            main.line(`memref.dealloc ${values[j]} : ${types[j]}`);
+        }
+    });
+    return buildModule(MODULE_HEADER, [...translated.map(circuit => circuit.text), main.toFunction(ENTRY_POINT)]);
+};
+
+/**
+ * Export a single 'Quantum Circuit' script; see `exportProjectToMLIR`.
  * @param {{getBlock: function(string): object}} blocks The block container of the sprite.
  * @param {string} hatId ID of the script's 'Quantum Circuit' hat block.
- * @param {{spriteName: string, lookupVariable: function(string): ?object}} options Sprite name for the
- *     header comment and a lookup from variable ID to the Scratch variable ({name, value}).
+ * @param {{spriteName: string, lookupVariable: function(string): ?object}} options Sprite name and variable lookup.
  * @return {string} The MLIR module.
  */
 const exportToMLIR = function (blocks, hatId, options) {
-    return new Exporter(blocks, options).run(hatId);
+    return exportProjectToMLIR([Object.assign({blocks, hatId}, options)]);
 };
 
-module.exports = {exportToMLIR, MLIRExportError};
+module.exports = {exportProjectToMLIR, exportToMLIR, MLIRExportError};

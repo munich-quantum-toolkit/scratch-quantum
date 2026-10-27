@@ -19,7 +19,7 @@ const formatF64 = function (value) {
 };
 
 /**
- * Builds the text of an MLIR `func.func @main` body: fresh SSA names, indentation of nested
+ * Builds the text of an MLIR `func.func` body: fresh SSA names, indentation of nested
  * regions and constants. Knows nothing about Scratch.
  */
 class MLIREmitter {
@@ -107,22 +107,30 @@ class MLIREmitter {
     }
 
     /**
-     * Wrap the emitted lines into a module with a `@main` entry point.
-     * @param {string} header Text of the leading comment line.
-     * @return {string} The complete MLIR module.
+     * Wrap the emitted lines into a `func.func` definition.
+     * @param {string} signature Everything between `func.func` and the body, e.g. `private @circuit_1()`.
+     * @param {string=} comment Optional comment line emitted above the function.
+     * @return {string} The function's text, indented for a module body.
      */
-    toModule (header) {
+    toFunction (signature, comment) {
         return [
-            `// ${header}`,
-            'module {',
-            '  func.func @main() attributes {mqt.entry_point} {',
+            ...(comment ? [`  // ${comment}`] : []),
+            `  func.func ${signature} {`,
             ...this._lines,
             '    return',
-            '  }',
-            '}',
-            ''
+            '  }'
         ].join('\n');
     }
 }
 
-module.exports = {MLIREmitter, formatF64};
+/**
+ * Assemble function definitions into an MLIR module.
+ * @param {string} header Text of the leading comment line.
+ * @param {Array.<string>} functions Function texts from `MLIREmitter.toFunction`.
+ * @return {string} The complete MLIR module.
+ */
+const buildModule = function (header, functions) {
+    return [`// ${header}`, 'module {', ...functions, '}', ''].join('\n');
+};
+
+module.exports = {MLIREmitter, buildModule, formatF64};
