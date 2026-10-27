@@ -804,10 +804,15 @@ class QuantumExtension {
                 const blockId = e.blockId || util.thread.peekStack();
                 const where = e.spriteName ? ` in sprite "${e.spriteName}"` : '';
                 console.error(`MLIR export failed${where} at block ${blockId}: ${e.message}`);
-                if (blockId) {
-                    this.runtime.visualReport(blockId, e.message);
-                }
                 this._notify(`MLIR export failed${where}: ${e.message}`);
+                if (blockId) {
+                    // The GUI throws if the block is not in the sprite being edited; never let that escape.
+                    try {
+                        this.runtime.visualReport(blockId, e.message);
+                    } catch (reportError) {
+                        console.error(reportError);
+                    }
+                }
             } else {
                 console.error(e);
                 this._notify('MLIR export failed (internal error), see console');

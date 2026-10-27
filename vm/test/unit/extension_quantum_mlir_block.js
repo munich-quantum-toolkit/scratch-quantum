@@ -105,3 +105,17 @@ test('a failing download is reported without crashing the thread', t => {
     t.same(reports, []);
     t.end();
 });
+
+test('a block outside the edited sprite cannot freeze the thread: the alert is shown without the bubble', t => {
+    const b = new ScriptBuilder();
+    b.script(b.createRegister('q', 1), b.gate('H', b.qubit(5)));
+    const {extension, util, downloads, notes} = setup([{name: 'Sprite2', builder: b}]);
+    extension.runtime.visualReport = () => {
+        throw 'Tried to report value on block that does not exist.'; // eslint-disable-line no-throw-literal
+    };
+    t.doesNotThrow(() => extension.toMLIR({}, util));
+    t.match(notes[0], /^MLIR export failed in sprite "Sprite2": Qubit index 5 is out of range/);
+    t.equal(notes.length, 1);
+    t.same(downloads, []);
+    t.end();
+});
