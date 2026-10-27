@@ -1,7 +1,10 @@
 const test = require('tap').test;
 const QuantumExtension = require('../../src/extensions/mqt_quantum/index.js');
+const Thread = require('../../src/engine/thread.js');
+const Sequencer = require('../../src/engine/sequencer.js');
 
 const BLOCK_ID = 'block-1';
+const PROCEDURE_CALL_ID = 'call-1';
 
 const setup = ({visualReportThrows = false} = {}) => {
     const reports = [];
@@ -13,16 +16,22 @@ const setup = ({visualReportThrows = false} = {}) => {
         }
     };
     const extension = new QuantumExtension(runtime);
-    const makeThread = () => {
-        const thread = {stopped: 0, peekStack: () => BLOCK_ID};
-        thread.stopThisScript = () => {
-            thread.stopped++;
-        };
+    const sequencer = new Sequencer(runtime);
+    const blocks = {
+        [PROCEDURE_CALL_ID]: {id: PROCEDURE_CALL_ID, opcode: 'procedures_call'},
+        [BLOCK_ID]: {id: BLOCK_ID, opcode: 'quantum_createRegister'}
+    };
+    // A real thread whose stack holds the given block ids (the running block last).
+    const makeThread = (stack = [BLOCK_ID]) => {
+        const thread = new Thread(stack[0]);
+        thread.target = {blocks: {getBlock: id => blocks[id]}};
+        stack.forEach(id => thread.pushStack(id));
         return thread;
     };
-    // Mirrors BlockUtility: stopThisScript delegates to the thread.
+    // Mirrors BlockUtility.
     const makeUtil = thread => ({
         thread,
+        sequencer,
         stackFrame: {},
         startedHats: [],
         yield: () => {},
@@ -43,17 +52,32 @@ const silenceConsoleError = t => {
     return logged;
 };
 
-test('creating a register above 10 qubits reports on the block and stops the script', t => {
+const assertEnded = (t, thread, message) => {
+    t.equal(thread.status, Thread.STATUS_DONE, `${message}: thread is done`);
+    t.same(thread.stack, [], `${message}: stack is empty`);
+};
+
+test('creating a register above 10 qubits reports on the block and stops the circuit', t => {
     const logged = silenceConsoleError(t);
     const {extension, reports, makeThread, makeUtil} = setup();
     const util = makeUtil(makeThread());
     extension.createRegister({NAME: 'a', NUM: '6'}, util);
     t.doesNotThrow(() => extension.createRegister({NAME: 'b', NUM: '5'}, util));
     const message = 'The simulator supports at most 10 qubits. This circuit needs 11.';
-    t.equal(util.thread.stopped, 1, 'the script is stopped');
+    assertEnded(t, util.thread, 'over the limit');
     t.same(reports, [{blockId: BLOCK_ID, value: message}]);
     t.ok(logged.includes(message), 'the message is logged');
     t.equal(extension.getCurrentExecutionInformation(util).simulationState.getRegisterSize('b'), 0);
+    t.end();
+});
+
+test('a register above 10 qubits inside a custom block stops the whole circuit', t => {
+    silenceConsoleError(t);
+    const {extension, reports, makeThread, makeUtil} = setup();
+    const util = makeUtil(makeThread([BLOCK_ID, PROCEDURE_CALL_ID, BLOCK_ID]));
+    extension.createRegister({NAME: 'q', NUM: '11'}, util);
+    assertEnded(t, util.thread, 'inside a procedure');
+    t.equal(reports.length, 1, 'reported once');
     t.end();
 });
 
@@ -62,15 +86,16 @@ test('a failing visualReport does not escape the handler', t => {
     const {extension, makeThread, makeUtil} = setup({visualReportThrows: true});
     const util = makeUtil(makeThread());
     t.doesNotThrow(() => extension.createRegister({NAME: 'q', NUM: '11'}, util));
-    t.equal(util.thread.stopped, 1, 'the script is still stopped');
+    assertEnded(t, util.thread, 'after a failed report');
     t.end();
 });
 
-test('10 qubits are created without stopping the script', t => {
+test('10 qubits are created without stopping the circuit', t => {
     const {extension, reports, makeThread, makeUtil} = setup();
     const util = makeUtil(makeThread());
     extension.createRegister({NAME: 'q', NUM: '10'}, util);
-    t.equal(util.thread.stopped, 0);
+    t.equal(util.thread.status, Thread.STATUS_RUNNING);
+    t.same(util.thread.stack, [BLOCK_ID]);
     t.same(reports, []);
     t.end();
 });
@@ -97,6 +122,16 @@ test('runCircuitsState casts a typed string to a number', t => {
     t.equal(extension.measure({QUBIT: 'q[0] and q[1] and q[2]'}, circuitUtil), '110');
     t.end();
 });
+
+for (const [typed, expected] of [['', 0], [' 3 ', 3], ['1e2', 100]]) {
+    test(`runCircuitsState accepts ${JSON.stringify(typed)} as ${expected}`, t => {
+        const {extension, util, circuitThread, reports} = runFromState(typed);
+        t.same(util.startedHats, ['quantum_quantumEvaluate'], 'circuits are started');
+        t.equal(extension.circuits.get(circuitThread).simulationState.startingState, expected);
+        t.same(reports, []);
+        t.end();
+    });
+}
 
 test('runCircuitsState with 0 starts from all zeros', t => {
     const {extension, circuitThread} = runFromState('0');

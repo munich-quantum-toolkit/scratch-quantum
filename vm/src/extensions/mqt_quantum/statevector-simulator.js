@@ -32,13 +32,8 @@ class StatevectorSimulator extends Simulator {
         if (totalQubits > MAX_QUBITS) {
             throw new QubitLimitError(totalQubits);
         }
-        this._addQubits(size);
+        this._addQubits(firstNewQubit, size);
         this.registers.push(new Register(name, size));
-        for (let qubit = firstNewQubit; qubit < totalQubits; qubit++) {
-            if (Math.floor(this.startingState / (2 ** qubit)) % 2 === 1) {
-                this._applyMatrixToQubits(this._getGateMatrix('X'), [qubit]);
-            }
-        }
     }
 
     applyGate (gate, targets, positiveControls, negativeControls) {
@@ -332,10 +327,12 @@ class StatevectorSimulator extends Simulator {
         this._stateVectorToVector();
     }
 
-    _addQubits (size) {
+    _addQubits (firstNewQubit, size) {
         // New qubits get the next (more significant) global indices, so the existing qubits keep theirs.
+        // They start in the basis state given by their digits of the starting state.
         const newQubits = new Vector(2 ** size);
-        newQubits.setElement(0, new Complex(1, 0));
+        const startingBits = Math.floor(this.startingState / (2 ** firstNewQubit)) % (2 ** size);
+        newQubits.setElement(startingBits, new Complex(1, 0));
         this.statevector = newQubits.tensorProduct(this.statevector);
         this._stateVectorToVector();
     }

@@ -438,7 +438,8 @@ class QuantumExtension {
         } catch (e) {
             if (!(e instanceof QubitLimitError)) throw e;
             this._reportOnBlock(util, e.message);
-            util.stopThisScript();
+            // end the whole circuit, also when called inside a custom block (stopThisScript would only leave that)
+            util.sequencer.retireThread(util.thread);
         }
     }
 

@@ -181,3 +181,70 @@ test('a register that would exceed 10 qubits throws and changes nothing', t => {
     t.same(simulator.registers.map(r => [r.name, r.size]), [['a', 4]], 'registers unchanged');
     t.end();
 });
+
+const a = index => ({register: 'a', index});
+const b = index => ({register: 'b', index});
+
+test('a superposition is kept when a later register is created', t => {
+    const simulator = new StatevectorSimulator(0);
+    simulator.createRegister('a', 1);
+    simulator.applyGate('H', [a(0)], [], []);
+    simulator.createRegister('b', 1);
+    simulator.applyGate('X', [b(0)], [a(0)], []);
+    // index = a[0] + 2 * b[0]: only |00> and |11> remain
+    const state = amplitudes(simulator);
+    close(t, Math.hypot(...state[0]), Math.SQRT1_2, 'a=0, b=0');
+    close(t, Math.hypot(...state[1]), 0, 'a=1, b=0');
+    close(t, Math.hypot(...state[2]), 0, 'a=0, b=1');
+    close(t, Math.hypot(...state[3]), Math.SQRT1_2, 'a=1, b=1');
+    for (let run = 0; run < 50; run++) {
+        const bell = new StatevectorSimulator(0);
+        bell.createRegister('a', 1);
+        bell.applyGate('H', [a(0)], [], []);
+        bell.createRegister('b', 1);
+        bell.applyGate('X', [b(0)], [a(0)], []);
+        const outcome = measureRegister(bell, 'a') + measureRegister(bell, 'b');
+        if (outcome !== '00' && outcome !== '11') {
+            t.fail(`measured ${outcome}`);
+            break;
+        }
+    }
+    t.end();
+});
+
+test('controlled gates and SWAP work between registers created at different times', t => {
+    const simulator = new StatevectorSimulator(0);
+    simulator.createRegister('a', 2);
+    simulator.applyGate('X', [a(1)], [], []);
+    simulator.createRegister('b', 2);
+    simulator.applyGate('X', [b(0)], [a(1)], []);
+    t.equal(measureRegister(simulator, 'a') + measureRegister(simulator, 'b'), '0110', 'CX a[1] -> b[0]');
+    simulator.applyGate('SWAP', [a(1), b(1)], [], []);
+    t.equal(measureRegister(simulator, 'a') + measureRegister(simulator, 'b'), '0011', 'SWAP a[1] <-> b[1]');
+    t.end();
+});
+
+test('starting state digits continue across three registers', t => {
+    const simulator = new StatevectorSimulator(11); // 01011
+    simulator.createRegister('a', 2);
+    simulator.createRegister('b', 1);
+    simulator.createRegister('c', 2);
+    t.equal(measureRegister(simulator, 'a'), '11');
+    t.equal(measureRegister(simulator, 'b'), '0');
+    t.equal(measureRegister(simulator, 'c'), '10');
+    t.end();
+});
+
+test('starting state bits are set without applying gate matrices', t => {
+    const simulator = new StatevectorSimulator(1023);
+    let matrixApplications = 0;
+    simulator._applyMatrixToQubits = () => {
+        matrixApplications++;
+    };
+    simulator.createRegister('a', 3);
+    simulator.createRegister('b', 7);
+    t.equal(matrixApplications, 0);
+    t.equal(measureRegister(simulator, 'a'), '111');
+    t.equal(measureRegister(simulator, 'b'), '1111111');
+    t.end();
+});
