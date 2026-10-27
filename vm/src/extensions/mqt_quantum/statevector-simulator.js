@@ -2,54 +2,42 @@ import {Simulator} from './simulator.js';
 import {Register, targetAccess, error} from './utils.js';
 import {Vector, Matrix, Complex} from './complex-math.js';
 
-const INTERNAL_STARTING_REGISTER = '~~internal_init';
 const MAX_QUBITS = 10;
 
+/**
+ * Thrown by `createRegister` when a circuit would need more qubits than the simulator supports.
+ */
+class QubitLimitError extends Error {
+    constructor (requestedQubits) {
+        super(`The simulator supports at most ${MAX_QUBITS} qubits. This circuit needs ${requestedQubits}.`);
+        this.name = 'QubitLimitError';
+        this.requestedQubits = requestedQubits;
+    }
+}
+
 class StatevectorSimulator extends Simulator {
-    constructor (startingState) {
+    /**
+     * @param {number} startingState non-negative integer; bit j gives the initial value of global qubit j
+     *  (qubit 0 = first qubit of the first register). Bits beyond the circuit's last qubit are ignored.
+     */
+    constructor (startingState = 0) {
         super(startingState);
         this.statevector = new Vector(1);
         this.statevector.setElement(0, new Complex(1, 0));
-        if (startingState !== 0) {
-            this._setupStartingState();
-        }
-    }
-
-    _setupStartingState () {
-        const numQubits = Math.ceil(Math.log2(this.startingState + 1));
-        this.createRegister(INTERNAL_STARTING_REGISTER, numQubits);
-        this.statevector.setElement(0, new Complex(0, 0));
-        this.statevector.setElement(this.startingState, new Complex(1, 0));
-    }
-
-    _reduceStartingState (name, size) {
-        const internalRegIndex = this.registers.findIndex(reg => reg.name === INTERNAL_STARTING_REGISTER);
-        if (internalRegIndex === -1) return false;
-        const internalReg = this.registers[internalRegIndex];
-
-        if (internalReg.size > size) {
-            // insert new register before internal register
-            this.registers.splice(internalRegIndex, 0, new Register(name, size));
-            // reduce internal register size
-            internalReg.size -= size;
-            return true;
-        }
-
-        // rename internal register
-        internalReg.name = name;
-        if (internalReg.size < size) {
-            // increase internal register size
-            const res = this._addQubits(size - internalReg.size);
-            internalReg.size += res;
-        }
-        return true;
     }
 
     createRegister (name, size) {
-        if (!this._reduceStartingState(name, size)) {
-            const reg = new Register(name, size);
-            reg.size = this._addQubits(size);
-            this.registers.push(reg);
+        const firstNewQubit = this._getNumQubits();
+        const totalQubits = firstNewQubit + size;
+        if (totalQubits > MAX_QUBITS) {
+            throw new QubitLimitError(totalQubits);
+        }
+        this._addQubits(size);
+        this.registers.push(new Register(name, size));
+        for (let qubit = firstNewQubit; qubit < totalQubits; qubit++) {
+            if (Math.floor(this.startingState / (2 ** qubit)) % 2 === 1) {
+                this._applyMatrixToQubits(this._getGateMatrix('X'), [qubit]);
+            }
         }
     }
 
@@ -345,17 +333,11 @@ class StatevectorSimulator extends Simulator {
     }
 
     _addQubits (size) {
-        const numQubits = Math.log2(this.statevector.n);
-        if (numQubits + size > MAX_QUBITS + 1) {
-            error('Statevector too large to simulate');
-            size = MAX_QUBITS - numQubits;
-            if (size <= 0) return 0;
-        }
-        const newQubit = new Vector(2 ** size);
-        newQubit.setElement(0, new Complex(1, 0));
-        this.statevector = this.statevector.tensorProduct(newQubit);
+        // New qubits get the next (more significant) global indices, so the existing qubits keep theirs.
+        const newQubits = new Vector(2 ** size);
+        newQubits.setElement(0, new Complex(1, 0));
+        this.statevector = newQubits.tensorProduct(this.statevector);
         this._stateVectorToVector();
-        return size;
     }
 
     _stateVectorToVector () {
@@ -368,3 +350,4 @@ class StatevectorSimulator extends Simulator {
 }
 
 export default StatevectorSimulator;
+export {QubitLimitError, MAX_QUBITS};

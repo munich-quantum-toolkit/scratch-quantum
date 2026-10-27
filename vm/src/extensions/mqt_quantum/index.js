@@ -1,6 +1,7 @@
 const ArgumentType = require('../../extension-support/argument-type');
 const BlockType = require('../../extension-support/block-type');
 const StatevectorSimulator = require('./statevector-simulator').default;
+const {QubitLimitError} = require('./statevector-simulator');
 const {ResourceEstimator, ResourceEstimatorSettings} = require('./resource-estimator');
 const {AST, LeafNode, NegatedNode, AndNode, validateRegisterName, validateQubitIndex} =
     require('./qubit-expression');
@@ -432,7 +433,28 @@ class QuantumExtension {
             return error('Number of qubits must be greater than 0');
         }
         validateQubitIndex(numQubits);
-        this.getCurrentExecutionInformation(util).simulationState.createRegister(registerName, numQubits);
+        try {
+            this.getCurrentExecutionInformation(util).simulationState.createRegister(registerName, numQubits);
+        } catch (e) {
+            if (!(e instanceof QubitLimitError)) throw e;
+            this._reportOnBlock(util, e.message);
+            util.stopThisScript();
+        }
+    }
+
+    /**
+     * Show an error to the user: log it and put a bubble on the block that is running.
+     * Never throws: in the GUI, visualReport throws for blocks of sprites that are not being edited.
+     * @param {object} util - block utility of the running block.
+     * @param {string} message - student-facing message.
+     */
+    _reportOnBlock (util, message) {
+        error(message);
+        try {
+            this.runtime.visualReport(util.thread.peekStack(), message);
+        } catch (e) {
+            error(e);
+        }
     }
 
     getQubit (args) {
@@ -632,7 +654,13 @@ class QuantumExtension {
     }
 
     runCircuitsState (args, util) {
-        this.genericRunCircuits(util, StatevectorSimulator, args.STATE);
+        // Scratch passes typed values as strings; only the first call (before the circuits start) uses it
+        const startingState = Number(args.STATE);
+        if (!util.stackFrame.executed && (!Number.isInteger(startingState) || startingState < 0)) {
+            this._reportOnBlock(util, 'The starting state must be a whole number of at least 0.');
+            return;
+        }
+        this.genericRunCircuits(util, StatevectorSimulator, startingState);
     }
 
     _sanitizeREResults(circuit) {

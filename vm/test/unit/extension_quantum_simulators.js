@@ -95,3 +95,89 @@ test('the resource estimator keeps unknown qubits unknown under X', t => {
     t.equal(estimator.qubits[0], null, 'X on an unknown qubit stays unknown');
     t.end();
 });
+
+const {QubitLimitError} = require('../../src/extensions/mqt_quantum/statevector-simulator.js');
+
+// Measures every qubit of a register, qubit 0 first (like `measure (qubits of register ...)`).
+const measureRegister = (simulator, register) => {
+    let result = '';
+    for (let i = 0; i < simulator.getRegisterSize(register); i++) {
+        result += simulator.measure({register, index: i});
+    }
+    return result;
+};
+
+test('starting state 1 sets the first qubit of a 3-qubit register', t => {
+    const simulator = new StatevectorSimulator(1);
+    simulator.createRegister('q', 3);
+    t.equal(measureRegister(simulator, 'q'), '100');
+    t.end();
+});
+
+test('starting state 6 sets the second and third qubits', t => {
+    const simulator = new StatevectorSimulator(6);
+    simulator.createRegister('q', 3);
+    t.equal(measureRegister(simulator, 'q'), '011');
+    t.end();
+});
+
+test('starting state digits continue across registers in creation order', t => {
+    const simulator = new StatevectorSimulator(5);
+    simulator.createRegister('a', 1);
+    simulator.createRegister('b', 2);
+    t.equal(measureRegister(simulator, 'a'), '1');
+    t.equal(measureRegister(simulator, 'b'), '01');
+    t.end();
+});
+
+test('starting state digits beyond the last qubit are ignored', t => {
+    const simulator = new StatevectorSimulator(13); // 1101
+    simulator.createRegister('q', 2);
+    t.equal(simulator.statevector.n, 4, 'no hidden qubits are added');
+    t.equal(simulator.registers.length, 1, 'no hidden register is added');
+    t.equal(measureRegister(simulator, 'q'), '10');
+    t.end();
+});
+
+test('starting state 0 behaves like no starting state', t => {
+    const simulator = new StatevectorSimulator(0);
+    simulator.createRegister('q', 3);
+    t.same(amplitudes(simulator), [[1, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0]]);
+    t.same(simulator.registers.map(r => [r.name, r.size]), [['q', 3]]);
+    t.end();
+});
+
+test('qubits keep their state when a later register is created', t => {
+    const simulator = new StatevectorSimulator(0);
+    simulator.createRegister('a', 1);
+    simulator.applyGate('X', [{register: 'a', index: 0}], [], []);
+    simulator.createRegister('b', 2);
+    t.equal(measureRegister(simulator, 'a'), '1');
+    t.equal(measureRegister(simulator, 'b'), '00');
+    t.end();
+});
+
+test('the statevector simulator handles 10 qubits across registers', t => {
+    const simulator = new StatevectorSimulator(0);
+    simulator.createRegister('a', 4);
+    simulator.createRegister('b', 6);
+    t.equal(simulator.statevector.n, 2 ** 10);
+    t.same(simulator.registers.map(r => [r.name, r.size]), [['a', 4], ['b', 6]]);
+    t.end();
+});
+
+test('a register that would exceed 10 qubits throws and changes nothing', t => {
+    const simulator = new StatevectorSimulator(0);
+    simulator.createRegister('a', 4);
+    simulator.applyGate('H', [{register: 'a', index: 0}], [], []);
+    const before = amplitudes(simulator);
+    t.throws(() => simulator.createRegister('b', 7), QubitLimitError);
+    try {
+        simulator.createRegister('b', 7);
+    } catch (e) {
+        t.equal(e.message, 'The simulator supports at most 10 qubits. This circuit needs 11.');
+    }
+    t.same(amplitudes(simulator), before, 'statevector unchanged');
+    t.same(simulator.registers.map(r => [r.name, r.size]), [['a', 4]], 'registers unchanged');
+    t.end();
+});
