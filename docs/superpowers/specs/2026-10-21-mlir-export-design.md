@@ -1,7 +1,7 @@
 # Export Circuits to MLIR — Design
 
 Date: 2026-10-21 (revised 2026-10-21: project-wide export)
-Status: Implemented (including project-wide export)
+Status: Implemented (project-wide export); manual GUI smoke test pending
 
 ## Goal
 
@@ -15,7 +15,9 @@ The translation is **static**: the block tree below the script's `Quantum Circui
 
 ## Reference: target dialect
 
-Validated against `mqt-cc` built from `~/01_research/core` (`cmake-build-llvm23/mlir/tools/mqt-cc/mqt-cc`).
+Validated against `mqt-cc` built from `~/01_research/core`
+(`.claude/worktrees/lucid-davinci-63efad/build/llvm23-release/mlir/tools/mqt-cc/mqt-cc`; this build enforces the
+entry-point allocation rule described under [Module shape](#module-shape)).
 All constructs below parse with `--emit=qc` and lower through `--emit=qco-optimized`. They also lower through
 `--emit=qir-adaptive`, with one exception (see [Known limitations](#known-limitations)).
 
@@ -72,19 +74,43 @@ Units (all in `src/extensions/mqt_quantum/`):
 
 ### Module shape
 
-Circuits are collected in the order `Run Quantum Circuits` starts them (so `@circuit_<k>` matches the resource
-estimator's "Circuit #k"); clones are skipped. The module starts with
+Circuits are collected in the order `Run Quantum Circuits` starts them; clones are skipped. `@circuit_<k>` matches
+the resource estimator's "Circuit #k" only when there are no clones and no circuit script is already running
+(`startHats` also starts clones and skips scripts that are running). The module starts with
 `// Exported from Scratch by the MQT quantum extension`, and every circuit function is preceded by
-`// 'Quantum Circuit' script of sprite "<name>"`.
+`// 'Quantum Circuit' script of sprite "<name>"`. Line breaks in the sprite name are replaced with a space so the comment stays
+on one line.
 
 - **One circuit:** its translation is the body of `func.func @main() attributes {mqt.entry_point}`.
-- **Several circuits:** each becomes `func.func private @circuit_<k>()` (k = 1, 2, …), and `@main` only calls them in
-  order with `func.call @circuit_<k>() : () -> ()`. mqt-cc's QIR lowering requires register names to be unique in the
-  program, so the `mqt.register_name` of register `q` in circuit k becomes `circuit_<k>_q`; SSA names stay `%q` because
-  they are function-local. Validated with mqt-cc through `--emit=qir-adaptive` (the calls are inlined).
+- **Several circuits:** each becomes `func.func private @circuit_<k>(...)` (k = 1, 2, …) that takes its registers as
+  arguments. The MQT dialects require dynamic qubit allocations to be in the entry block of the `mqt.entry_point`
+  function, and helper functions to receive quantum resources as arguments, so only `@main` allocates:
+
+  ```mlir
+  func.func private @circuit_1(%q: memref<2x!qc.qubit>) {
+    ...
+    return
+  }
+  func.func @main() attributes {mqt.entry_point} {
+    %circuit_1_q = memref.alloc() {mqt.register_name = "circuit_1_q"} : memref<2x!qc.qubit>
+    func.call @circuit_1(%circuit_1_q) : (memref<2x!qc.qubit>) -> ()
+    memref.dealloc %circuit_1_q : memref<2x!qc.qubit>
+    ...
+    return
+  }
+  ```
+
+  - Helper signature: one argument per register in creation order, named by the register's SSA name (`%q`), typed
+    `memref<Nx!qc.qubit>`. A circuit without registers gets `@circuit_<k>()` and `func.call @circuit_<k>() : () -> ()`.
+    Helpers neither allocate nor deallocate.
+  - `@main` handles the circuits in order: allocate that circuit's registers in creation order, call, then deallocate
+    them in reverse creation order. mqt-cc's QIR lowering requires register names to be unique in the program, so the
+    `mqt.register_name` (and the SSA name in `@main`) of register `q` in circuit k is `circuit_<k>_q`.
 - **No circuits:** `MLIRExportError` without a block; `toMLIR` shows it on the export block itself.
 
-An export block inside a circuit script is skipped (`// skipped: quantum_toMLIR`) like other side-effect-only blocks.
+An export block inside a circuit script is skipped in the translation (`// skipped: quantum_toMLIR`) like other
+side-effect-only blocks, but it still runs at runtime: `Run Quantum Circuits` would then export once per such circuit.
+Use the export block outside circuit scripts.
 
 ## Translation rules
 
@@ -106,7 +132,8 @@ Constants are materialized (`arith.constant`) only when an SSA operand is requir
 - `NAME` must be a literal valid register name (existing `validateRegisterName` rules).
 - `NUM` must evaluate to a constant integer ≥ 1 (static memref size).
 - Only allowed at the top level of the script (not in `repeat`, `if`, `controlled on`). Duplicate names are errors.
-- Every register gets `memref.dealloc` before `return`, in reverse creation order.
+- Every register gets `memref.dealloc` before `return`, in reverse creation order. With several circuits, allocation
+  and deallocation move to `@main` (see [Module shape](#module-shape)).
 
 ### Qubit expressions
 
@@ -224,9 +251,12 @@ message, for example:
 
 `toMLIR` catches it and:
 
-1. shows the message as a report bubble on the offending block via `runtime.visualReport(blockId, message)`;
-2. shows it in an `alert()`;
-3. logs it with the block id via `console.error`;
+1. logs it with the block id via `console.error`;
+2. shows it in an `alert()` (always, before the bubble);
+3. shows it as a report bubble on the offending block via `runtime.visualReport(blockId, message)` — best effort: the
+   GUI can only show it for blocks of the sprite being edited and throws otherwise, so this call is wrapped in its own
+   `try`/`catch` (the error is logged, never rethrown — an escaping exception would re-run the block every frame and
+   freeze the stage);
 4. does not download anything.
 
 The error carries the failing circuit's `spriteName`; the alert reads "MLIR export failed in sprite "<name>": …"
@@ -242,8 +272,8 @@ On success the file is downloaded and the alert reads "Exported circuits to quan
 
 Using the existing `tap` setup.
 
-1. **Unit tests** — `test/unit/extension_quantum_mlir.js`: build block containers programmatically (`Blocks.createBlock`)
-   and test each rule: every gate, broadcasting, positive/negative/nested controls, `repeat` with a loop-carried
+1. **Unit tests** — split into `test/unit/extension_quantum_mlir_*.js` (gates, controls, control flow, variables,
+   parameters, emitter, project, block); scripts are built with the `ScriptBuilder` fixture. They test each rule: every gate, broadcasting, positive/negative/nested controls, `repeat` with a loop-carried
    variable, `if`/`else` on measurement, operator folding, `i1`/`f64` variable typing, skipped blocks, and every error
    case (asserting message and `blockId`). Assertions match golden line snippets rather than whole files, so SSA
    renumbering does not cause brittleness. Emitter unit tests cover naming and region indentation.
@@ -254,7 +284,8 @@ Using the existing `tap` setup.
    runs each exported file through `mqt-cc --emit=qco-optimized` and `--emit=qir-adaptive` and requires exit code 0.
    Without `MQT_CC` the check is skipped with a note.
 4. **Manual smoke test** — build scratch-gui, run the export block from a flag script in each exercise, verify the
-   download and the error bubble on a deliberately unsupported block.
+   download and the error bubble on a deliberately unsupported block. Also: put the flag + export script on the Stage,
+   break a circuit in Sprite2 while editing Sprite1 — expect an alert, no freeze, no download.
 
 ## Known limitations
 
