@@ -44,7 +44,8 @@ For any other name, including the empty name, the console shows an error message
   For `0`, the console shows "Number of qubits must be greater than 0" and nothing happens.
   For a negative number or text, the console shows "Qubit index must be a non-negative integer" and the block fails with an error.
 - The simulator handles circuits with up to 10 qubits in total.
-  If a register does not fit, the console shows "Statevector too large to simulate" and the register is created with fewer qubits than you asked for.
+  A register that would exceed this limit is not created: the block shows a message and the circuit stops.
+  See {doc}`simulation`.
 
 ### Qubit of register
 
@@ -408,18 +409,19 @@ Run Quantum Circuits starting from (0) :: extension
 
 State
 : Number, default `0`.
-The starting state of the qubits as a whole number.
+The starting state of the qubits as a whole number of at least 0.
 
 Behaviour
 : Works like `Run Quantum Circuits`, but the qubits start in the basis state given by the number instead of $|0\rangle$.
-The intended meaning is that the binary digits of the number give the initial state, with the lowest digit on the first qubit.
+The binary digits of the number give the initial state, with the lowest digit on the first qubit created, then the next qubits in creation order, across registers.
+Digits beyond the last qubit of the circuit are ignored.
 
 Notes
 : - The state `0` gives the same result as `Run Quantum Circuits`.
 
-- The block currently has known issues and does not always give this result.
-  It gives this state reliably only when the number has at least as many binary digits as the circuit has qubits; other values, and some typed numbers, can give wrong or too large states.
-  To start in a particular state, use `Run Quantum Circuits` and apply `X` gates at the start of the circuit instead; see {doc}`simulation`.
+- The block uses the binary digits of the number: `101` means the number 101, and `5` gives the bit pattern 1-0-1.
+- For a negative number, a decimal number, or text, the block shows a message and no circuit runs.
+- For examples and details, see {doc}`simulation`.
 
 ### Set Simulator
 

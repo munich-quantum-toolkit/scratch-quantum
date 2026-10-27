@@ -75,46 +75,44 @@ The qubits then continue from the collapsed state.
 ## Starting from a state
 
 By default, all qubits of a circuit start in the state $|0\rangle$.
-`Run Quantum Circuits starting from` is meant to start all circuits in a basis state that you choose by a number:
+`Run Quantum Circuits starting from` starts all circuits in a basis state that you choose by a number:
 
 ```{scratchblocks}
 when green flag clicked
 Run Quantum Circuits starting from (5) :: extension
 ```
 
-The intended meaning is that the binary digits of the number give the initial state, with the lowest digit on the first qubit that the circuit creates.
-The number `5` is `101` in binary, so the first qubit would start as 1, the second as 0, and the third as 1.
+The binary digits of the number give the initial state, with the lowest digit on the first qubit that the circuit creates, then the next qubits in the order of their creation, across all registers.
+The number `5` is `101` in binary, so the first qubit starts as 1, the second as 0, and the third as 1.
+The block uses the binary digits of the number, not its decimal digits: typing `101` means the number one hundred and one, not the bit pattern 1-0-1, which is the number `5`.
+Digits beyond the last qubit of the circuit are ignored.
 The number `0` is the same as `Run Quantum Circuits`.
 The starting state applies to every circuit that the block starts, so each circuit starts from the same state.
 
-```{important}
-This block currently has known issues.
-Its result matches the description above only in simple cases, namely when the number has at least as many binary digits as the circuit has qubits.
-In other cases, and for some numbers that you type into the block, the qubits can start in a different state than you expect, or the starting state can become too large for the simulator.
-Do not rely on this block.
-```
+The number must be a whole number of at least 0; you can type it or use a reporter.
+For any other value, for example a negative number, a decimal number, or text, the block shows a message and no circuit runs.
 
-The reliable way to start in a particular state is to start from $|0\rangle$ with `Run Quantum Circuits` and to flip the qubits that should be 1 with `X` gates at the beginning of the circuit.
-The following circuit starts the qubits in the state `101`: qubits 0 and 2 are flipped, and qubit 1 stays 0.
+The following circuit has three qubits.
+Started with `Run Quantum Circuits starting from (6)`, it starts in the state $|011\rangle$ in the order qubit 0, 1, 2, because `6` is `110` in binary and the lowest digit belongs to qubit 0.
+The sprite says `011`:
 
 ```{scratchblocks}
 Quantum Circuit :: hat extension
 create quantum register [q] with (3) qubits :: extension
-apply [X v] gate to (qubit (0) of register [q] :: extension) :: extension
-apply [X v] gate to (qubit (2) of register [q] :: extension) :: extension
 say <measure (qubits of register [q] :: extension) :: extension>
 ```
 
-The sprite says `101`.
+Optionally, you can also start from $|0\rangle$ with `Run Quantum Circuits` and flip the qubits that should be 1 with `X` gates at the beginning of the circuit.
 
 ## Size limit
 
 The simulator handles circuits with up to 10 qubits in total, summed over all registers of the circuit.
 The simulator keeps one value for every combination of qubit values, so the resources it needs grow exponentially with each additional qubit.
 
-If a register does not fit, the console shows "Statevector too large to simulate" (open it with F12), and the register is created with fewer qubits than you asked for, possibly with none.
-Gates ignore qubits beyond the last qubit of the circuit, and `measure` reports `undefined` for them.
-The simulator does not stop the circuit.
+If you create a register that would make the circuit exceed 10 qubits, the circuit stops at that block.
+The block shows a message such as "The simulator supports at most 10 qubits. This circuit needs 11.", and the console shows it too (open it with F12).
+The blocks below it do not run.
+Other circuits keep running.
 Use circuits with at most 10 qubits.
 
 The {doc}`resource estimation <resource-estimation>` has no such limit, because it does not simulate the state.
