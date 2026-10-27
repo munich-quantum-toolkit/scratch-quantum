@@ -2,7 +2,9 @@ import { spawnSync } from "node:child_process";
 
 /** npm and npx are batch files on Windows, which only start through a shell. */
 export function needsShell(command) {
-  return process.platform === "win32" && (command === "npm" || command === "npx");
+  return (
+    process.platform === "win32" && (command === "npm" || command === "npx")
+  );
 }
 
 /**

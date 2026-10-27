@@ -2,7 +2,11 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-export const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
+export const REPO_ROOT = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "..",
+  "..",
+);
 export const REPOS = ["vm", "gui"];
 
 /** The paths of the repository at `root` and of its upstream trees in `.upstream/`. */
@@ -32,7 +36,9 @@ export function readUpstream(root = REPO_ROOT) {
 export function requireTrees(paths) {
   for (const repo of REPOS) {
     if (!fs.existsSync(paths.tree(repo))) {
-      throw new Error(`.upstream/${repo} is missing. Run "npm run setup" first.`);
+      throw new Error(
+        `.upstream/${repo} is missing. Run "npm run setup" first.`,
+      );
     }
   }
 }

@@ -17,7 +17,8 @@ export function listFiles(dir) {
 }
 
 function sameContent(a, b) {
-  if (!fs.existsSync(b) || fs.statSync(a).size !== fs.statSync(b).size) return false;
+  if (!fs.existsSync(b) || fs.statSync(a).size !== fs.statSync(b).size)
+    return false;
   return fs.readFileSync(a).equals(fs.readFileSync(b));
 }
 
@@ -37,7 +38,11 @@ function removeFile(file, root) {
   if (!fs.existsSync(file)) return;
   makeWritable(file);
   fs.rmSync(file);
-  for (let dir = path.dirname(file); dir !== root && fs.readdirSync(dir).length === 0; dir = path.dirname(dir)) {
+  for (
+    let dir = path.dirname(file);
+    dir !== root && fs.readdirSync(dir).length === 0;
+    dir = path.dirname(dir)
+  ) {
     fs.rmdirSync(dir);
   }
 }
@@ -48,12 +53,17 @@ function removeFile(file, root) {
  */
 export function syncOverlay({ source, target, manifest }) {
   const files = listFiles(source);
-  const previous = fs.existsSync(manifest) ? JSON.parse(fs.readFileSync(manifest, "utf8")) : [];
+  const previous = fs.existsSync(manifest)
+    ? JSON.parse(fs.readFileSync(manifest, "utf8"))
+    : [];
   const current = new Set(files);
   const removed = previous.filter((file) => !current.has(file));
   for (const file of removed) removeFile(path.join(target, file), target);
-  const copied = files.filter((file) => !sameContent(path.join(source, file), path.join(target, file)));
-  for (const file of copied) copyReadOnly(path.join(source, file), path.join(target, file));
+  const copied = files.filter(
+    (file) => !sameContent(path.join(source, file), path.join(target, file)),
+  );
+  for (const file of copied)
+    copyReadOnly(path.join(source, file), path.join(target, file));
   fs.mkdirSync(path.dirname(manifest), { recursive: true });
   fs.writeFileSync(manifest, `${JSON.stringify(files, null, 2)}\n`);
   return { copied, removed };
