@@ -17,3 +17,8 @@ docs = [
 
 [tool.uv]
 package = false
+
+[tool.typos]
+[tool.typos.default.extend-words]
+wille = "wille"
+olt = "olt"  # MLIR `arith.cmpf` predicate (ordered less than)
