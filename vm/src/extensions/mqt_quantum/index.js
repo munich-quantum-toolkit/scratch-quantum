@@ -683,7 +683,6 @@ class QuantumExtension {
             return Promise.resolve(error);
         }
         let result = "";
-        console.log(this.runtime);
 
         for (let i = 0; i < this.runtime.lastResourceEstimate.length; i++) {
             result += _getResourceEstimateOfCircuit(this.runtime.lastResourceEstimate, i, ResourceType.ALL);
@@ -739,9 +738,9 @@ class QuantumExtension {
             this.getREToffoliDecompositionEnabled(util),
             this.getRESwapDecompositionEnabled(util)
         ));
-        if (result != {}) {
+        // genericRunCircuits reports '' while the circuits are still running and the results once they are done.
+        if (Array.isArray(result)) {
             this.runtime.lastResourceEstimate = result;
-            console.log(this.runtime);
         }
     }
 
@@ -877,7 +876,6 @@ const _getResourceEstimateOfCircuit = function (estimatesByCircuit, circuitNumbe
 
     if (resourceType === ResourceType.ALL) {
         const estimate = estimatesByCircuit[circuitNumber];
-        console.log(estimate.gates);
         let result = "";
         result += `Total Qubits: ${qubits}\n\n`;
         for (const count of Object.keys(estimate.gates)) {

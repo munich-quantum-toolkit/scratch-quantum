@@ -156,3 +156,26 @@ test('runCircuitsState reports invalid input even when visualReport throws', t =
     t.doesNotThrow(() => runFromState('x', {visualReportThrows: true}));
     t.end();
 });
+
+test('resource estimation keeps the previous result while the circuits are still running', t => {
+    const {extension, runtime, makeThread, makeUtil} = setup();
+    const previous = [{qubits: 1, gates: {}}];
+    runtime.lastResourceEstimate = previous;
+    const circuit = makeThread();
+    const util = makeUtil(makeThread());
+    util.startHats = () => [circuit];
+    // First call starts the circuits and yields.
+    extension.estimateCircuitsResources({}, util);
+    t.equal(runtime.lastResourceEstimate, previous, 'the running estimate does not overwrite the previous one');
+    // The circuit is still running.
+    runtime.threads = [circuit];
+    extension.estimateCircuitsResources({}, util);
+    t.equal(runtime.lastResourceEstimate, previous, 'still running: previous result kept');
+    // The circuit has finished: the new result is stored.
+    runtime.threads = [];
+    extension.estimateCircuitsResources({}, util);
+    t.ok(Array.isArray(runtime.lastResourceEstimate), 'finished: the new result is an array');
+    t.not(runtime.lastResourceEstimate, previous, 'finished: the new result replaces the previous one');
+    t.equal(runtime.lastResourceEstimate.length, 1, 'one result per circuit');
+    t.end();
+});
