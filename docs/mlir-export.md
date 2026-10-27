@@ -115,46 +115,46 @@ Reading the file from top to bottom:
 The following table lists how the blocks translate.
 The names in the second column are the operations of the dialects `qc` (quantum circuit), `arith` (arithmetic), `memref` (memory) and `scf` (structured control flow).
 
-| Block | MLIR |
-| --- | --- |
-| `create quantum register [q] with (n) qubits` | `memref.alloc` of `memref<nx!qc.qubit>` with `mqt.register_name`; `memref.dealloc` before `return`, in reverse order of creation |
-| `qubit (i) of register [q]` | `memref.load` of one qubit, right before the operation that uses it |
-| `qubits of register [q]` | all qubits of the register |
-| `[A] and [B]` | the qubits of both inputs |
-| `negated control [Q]` | marks the qubits as negated controls |
-| `apply [X/Y/Z/H/S/T v] gate to [Q]` | `qc.x`, `qc.y`, `qc.z`, `qc.h`, `qc.s`, `qc.t` |
-| `apply SWAP gate to [Q1] and [Q2]` | `qc.swap` |
-| `rotate [Q] by (a) degrees around [X/Y/Z v] axis` | `qc.rx`, `qc.ry`, `qc.rz` with the angle in radians |
-| `apply U3 gate to [Q] with angles (θ) (φ) (λ)` | `qc.u` with the three angles in radians |
-| `controlled on [Q] { … }` | one `qc.ctrl` per gate in the body |
-| `measure [Q]` | `qc.measure`, which gives an `i1` value |
-| `repeat (n)` | `scf.for` |
-| `if … then`, `if … then … else` | `scf.if` |
-| `set [v] to`, `change [v] by` and variables | SSA values |
-| `+`, `-`, `*`, `/` | `arith.addf`, `arith.subf`, `arith.mulf`, `arith.divf` |
-| `<`, `>`, `=` | `arith.cmpf` with `olt`, `ogt`, `oeq` |
-| `not`, `and`, `or` | `arith.xori` with `true`, `arith.andi`, `arith.ori` |
+| Block                                             | MLIR                                                                                                                             |
+| ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `create quantum register [q] with (n) qubits`     | `memref.alloc` of `memref<nx!qc.qubit>` with `mqt.register_name`; `memref.dealloc` before `return`, in reverse order of creation |
+| `qubit (i) of register [q]`                       | `memref.load` of one qubit, right before the operation that uses it                                                              |
+| `qubits of register [q]`                          | all qubits of the register                                                                                                       |
+| `[A] and [B]`                                     | the qubits of both inputs                                                                                                        |
+| `negated control [Q]`                             | marks the qubits as negated controls                                                                                             |
+| `apply [X/Y/Z/H/S/T v] gate to [Q]`               | `qc.x`, `qc.y`, `qc.z`, `qc.h`, `qc.s`, `qc.t`                                                                                   |
+| `apply SWAP gate to [Q1] and [Q2]`                | `qc.swap`                                                                                                                        |
+| `rotate [Q] by (a) degrees around [X/Y/Z v] axis` | `qc.rx`, `qc.ry`, `qc.rz` with the angle in radians                                                                              |
+| `apply U3 gate to [Q] with angles (θ) (φ) (λ)`    | `qc.u` with the three angles in radians                                                                                          |
+| `controlled on [Q] { … }`                         | one `qc.ctrl` per gate in the body                                                                                               |
+| `measure [Q]`                                     | `qc.measure`, which gives an `i1` value                                                                                          |
+| `repeat (n)`                                      | `scf.for`                                                                                                                        |
+| `if … then`, `if … then … else`                   | `scf.if`                                                                                                                         |
+| `set [v] to`, `change [v] by` and variables       | SSA values                                                                                                                       |
+| `+`, `-`, `*`, `/`                                | `arith.addf`, `arith.subf`, `arith.mulf`, `arith.divf`                                                                           |
+| `<`, `>`, `=`                                     | `arith.cmpf` with `olt`, `ogt`, `oeq`                                                                                            |
+| `not`, `and`, `or`                                | `arith.xori` with `true`, `arith.andi`, `arith.ori`                                                                              |
 
 The following paragraphs give the details for registers, qubits, gates and rotations.
 
 Register names and sizes
 : The name of a register must be fixed text, not a block, and it must be a valid name (letters, digits and `_`, starting with a letter or `_`).
-  The number of qubits must be a fixed whole number of at least 1, because the size of a `memref` is static.
-  You can create registers only at the top level of the circuit, not inside `repeat`, `if` or `controlled on`.
+The number of qubits must be a fixed whole number of at least 1, because the size of a `memref` is static.
+You can create registers only at the top level of the circuit, not inside `repeat`, `if` or `controlled on`.
 
 Qubit indices
 : A fixed index is checked against the size of the register.
-  An index that depends on a variable is converted with `arith.fptosi` and `arith.index_cast`, which truncates like the simulator, and is not checked.
-  If the variable has a known value at that point, the export uses the value and checks it, so `qubit (i + 1) of register [q]` stays static as long as `i` holds a fixed value.
+An index that depends on a variable is converted with `arith.fptosi` and `arith.index_cast`, which truncates like the simulator, and is not checked.
+If the variable has a known value at that point, the export uses the value and checks it, so `qubit (i + 1) of register [q]` stays static as long as `i` holds a fixed value.
 
 Gates
 : A gate applied to several qubits becomes one operation per qubit, in order.
-  The gate and axis menus must be set to a menu entry, not to a block.
-  A `negated control` is an error in a target input.
+The gate and axis menus must be set to a menu entry, not to a block.
+A `negated control` is an error in a target input.
 
 Rotations
 : The angles of `rotate` and `apply U3 gate` are in degrees in the blocks and in radians in MLIR.
-  The export converts fixed angles itself and multiplies other angles by $\pi/180$ with `arith.mulf`.
+The export converts fixed angles itself and multiplies other angles by $\pi/180$ with `arith.mulf`.
 
 ### Controls
 
@@ -289,9 +289,9 @@ One circuit
 
 Several circuits
 : Each circuit becomes a function `@circuit_<k>`, with `k` counting from 1.
-  The function receives the registers of its circuit as `memref` arguments, one per register, in the order in which the circuit creates them.
-  It neither allocates nor releases them.
-  The entry point `@main` allocates the registers of each circuit, calls the function of the circuit, and releases the registers again, one circuit after the other.
+The function receives the registers of its circuit as `memref` arguments, one per register, in the order in which the circuit creates them.
+It neither allocates nor releases them.
+The entry point `@main` allocates the registers of each circuit, calls the function of the circuit, and releases the registers again, one circuit after the other.
 
 The current MQT Core only allows `@main`, the function marked as the entry point, to allocate qubits; helper functions must receive them as arguments.
 This is why the registers are arguments of the helper functions.
@@ -348,13 +348,13 @@ Of the regular Scratch blocks, it translates `repeat`, `if`, `if else`, `set …
 
 Skipped blocks
 : The export skips the blocks of the categories motion, looks, sound and pen, and the block `wait (…) seconds`.
-  It also skips the settings blocks of the extension (`Set Simulator` and the three enable and disable blocks for the resource estimation) and the `Export Circuits to MLIR` block itself.
-  A skipped block leaves a comment `// skipped: <opcode>` in the file.
-  Quantum reporters in the inputs of a skipped block are still translated; see [Measurement](#measurement).
+It also skips the settings blocks of the extension (`Set Simulator` and the three enable and disable blocks for the resource estimation) and the `Export Circuits to MLIR` block itself.
+A skipped block leaves a comment `// skipped: <opcode>` in the file.
+Quantum reporters in the inputs of a skipped block are still translated; see [Measurement](#measurement).
 
 Unsupported blocks
 : Every other block is an error.
-  This includes lists, custom blocks, broadcasts, `forever`, `repeat until`, `wait until`, string operators, and the blocks that run circuits or estimate resources (`Run Quantum Circuits` and `Perform Quantum Resource Estimation`).
+This includes lists, custom blocks, broadcasts, `forever`, `repeat until`, `wait until`, string operators, and the blocks that run circuits or estimate resources (`Run Quantum Circuits` and `Perform Quantum Resource Estimation`).
 
 ## Errors
 

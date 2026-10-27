@@ -15,7 +15,9 @@ from sphinx.util.docutils import SphinxDirective
 if TYPE_CHECKING:
     from sphinx.application import Sphinx
 
-SCRATCHBLOCKS_JS = "https://cdn.jsdelivr.net/npm/scratchblocks@3.7.1/build/scratchblocks.min.js"
+SCRATCHBLOCKS_JS = (
+    "https://cdn.jsdelivr.net/npm/scratchblocks@3.7.1/build/scratchblocks.min.js"
+)
 
 
 class ScratchblocksDirective(SphinxDirective):

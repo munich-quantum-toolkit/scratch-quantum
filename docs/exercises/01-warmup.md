@@ -1,12 +1,12 @@
 # Warming up with Scratch
 
-*This exercise does not have a time estimate.
-Feel free to skip it if you have used Scratch before.*
+_This exercise does not have a time estimate.
+Feel free to skip it if you have used Scratch before._
 
 {download}`Download the template <templates/01-warmup.sb3>`
 
 To get started, please open the editor on [https://munich-quantum-toolkit.github.io/scratch-quantum/](https://munich-quantum-toolkit.github.io/scratch-quantum/).
-From there, open the file `01-warmup.sb3` with *File → Load from your computer*.
+From there, open the file `01-warmup.sb3` with _File → Load from your computer_.
 
 **(a)** In Scratch, programs are written by concatenating blocks under an event.
 Try to guess, based on the blocks under "When [GREEN FLAG] clicked", what this program will do.
@@ -23,6 +23,6 @@ Complete the block by dragging in the `x-position` and `y-position` variables fr
 
 Then, add the completed `if-then-else` block to the main program (under "When [GREEN FLAG] clicked") and try it out!
 
-*Try to experiment some more to get a solid grasp of how to use Scratch.*
+_Try to experiment some more to get a solid grasp of how to use Scratch._
 
 When you are ready, continue with {doc}`02-circuits`.

@@ -26,7 +26,7 @@ Click the script
 
 Run Quantum Circuits
 : The `Run Quantum Circuits` block starts every `Quantum Circuit` script of the project, in all sprites and in the stage, and runs them together.
-  The script containing the block waits until all circuits have finished, and the blocks below it run afterwards.
+The script containing the block waits until all circuits have finished, and the blocks below it run afterwards.
 
 The green flag does not start `Quantum Circuit` scripts.
 To run your circuits with the green flag, put `Run Quantum Circuits` below a `when green flag clicked` hat, as in the {doc}`quickstart`:

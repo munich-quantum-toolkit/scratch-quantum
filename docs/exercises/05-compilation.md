@@ -1,10 +1,10 @@
 # Compilation & circuit optimization
 
-*Estimated time: 10 minutes.*
+_Estimated time: 10 minutes._
 
 {download}`Download the template <templates/05-compilation.sb3>`
 
-Open the editor at [https://munich-quantum-toolkit.github.io/scratch-quantum/](https://munich-quantum-toolkit.github.io/scratch-quantum/), then choose *File → Load from your computer* and open the file `05-compilation.sb3`.
+Open the editor at [https://munich-quantum-toolkit.github.io/scratch-quantum/](https://munich-quantum-toolkit.github.io/scratch-quantum/), then choose _File → Load from your computer_ and open the file `05-compilation.sb3`.
 It contains two **equivalent** circuits that each have a lot of `SWAP` gates.
 These gates have to be translated into several `CX` gates for most architectures.
 Therefore, they can be quite expensive.

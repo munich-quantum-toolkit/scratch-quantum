@@ -5,7 +5,7 @@ You work through them in the Scratch editor, with one template project per exerc
 No previous knowledge of quantum computing is needed.
 
 Each exercise page starts with a time estimate and a download link for its template.
-Open the [editor](https://munich-quantum-toolkit.github.io/scratch-quantum/), then choose *File → Load from your computer* to open the template.
+Open the [editor](https://munich-quantum-toolkit.github.io/scratch-quantum/), then choose _File → Load from your computer_ to open the template.
 The templates that contain quantum blocks load the quantum extension automatically.
 
 ## What you learn
@@ -28,22 +28,22 @@ The exercises are designed for a short workshop or a single class session.
 
 Prerequisites
 : None.
-  Exercise 1 introduces Scratch.
-  For the quantum concepts, point your students to the {doc}`../quickstart` and {doc}`../quantum-basics` pages.
+Exercise 1 introduces Scratch.
+For the quantum concepts, point your students to the {doc}`../quickstart` and {doc}`../quantum-basics` pages.
 
 Time
 : About 35 minutes for exercises 2 to 5, plus the warm-up.
-  The time estimate of each exercise is a guideline.
-  If a group takes longer, it can move on to the next exercise without finishing.
+The time estimate of each exercise is a guideline.
+If a group takes longer, it can move on to the next exercise without finishing.
 
 Format
 : We suggest that students work in pairs with one laptop per pair.
-  You can hand out the exercise sheets on paper or share the pages of this documentation.
-  Every student needs a browser; nothing has to be installed.
+You can hand out the exercise sheets on paper or share the pages of this documentation.
+Every student needs a browser; nothing has to be installed.
 
 Materials
 : Each exercise page links its template project.
-  You can download the files once and distribute them yourself.
+You can download the files once and distribute them yourself.
 
 Solutions
 : There are no published solutions.

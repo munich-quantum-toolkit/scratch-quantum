@@ -27,4 +27,5 @@ When you use the extension in your teaching or research, please cite:
 ```
 
 ```{bibliography}
+
 ```

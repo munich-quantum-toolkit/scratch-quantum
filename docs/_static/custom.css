@@ -55,7 +55,8 @@ body:not([data-theme="light"]) .highlight .gp {
 
 /* Scratch blocks (docs/_ext/scratchblocks.py): show extension blocks in the quantum extension's blue
    instead of scratchblocks' generic extension green. */
-svg.scratchblocks-style-scratch3 .sb3-extension:not(.sb3-input-number):not(.sb3-input-string) {
+svg.scratchblocks-style-scratch3
+  .sb3-extension:not(.sb3-input-number):not(.sb3-input-string) {
   fill: #0065bd;
   stroke: #003359;
 }

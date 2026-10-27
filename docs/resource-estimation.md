@@ -62,20 +62,21 @@ Only a script that branches on measurement results can change them, as described
 
 Qubits
 : The total number of qubits of all registers of the circuit, plus the extra qubits (ancillas) that the Toffoli decomposition adds.
-  The simulator's limit of 10 qubits does not apply to the estimator.
+The simulator's limit of 10 qubits does not apply to the estimator.
 
 Gates
 : Every gate block that runs adds one gate, and a block that applies a gate to several qubits adds one gate per qubit.
-  The gate is counted whether or not its controls are met.
-  - The gate names are `H`, `X`, `Y`, `Z`, `S`, `T`, and `SWAP`, and `RX`, `RY`, `RZ` for rotations.
-    A `U3` gate is counted as its three rotations: two `RZ` gates and one `RY` gate.
-  - Each control adds a `C` in front of the name, so an `X` gate with one control is `CX` and one with two controls is `CCX`.
-    A negated control counts like any other control, and the name does not show which controls are negated.
-  - A controlled `SWAP` gate is called `CSWAP`, so it is not counted as a `SWAP` gate; see [SWAP decomposition](#swap-decomposition).
+The gate is counted whether or not its controls are met.
+
+- The gate names are `H`, `X`, `Y`, `Z`, `S`, `T`, and `SWAP`, and `RX`, `RY`, `RZ` for rotations.
+  A `U3` gate is counted as its three rotations: two `RZ` gates and one `RY` gate.
+- Each control adds a `C` in front of the name, so an `X` gate with one control is `CX` and one with two controls is `CCX`.
+  A negated control counts like any other control, and the name does not show which controls are negated.
+- A controlled `SWAP` gate is called `CSWAP`, so it is not counted as a `SWAP` gate; see [SWAP decomposition](#swap-decomposition).
 
 Measurements
 : Every `measure` block that runs adds a gate called `measure` for every measured qubit.
-  A measurement counts as a gate that acts on one qubit, and it ignores controls.
+A measurement counts as a gate that acts on one qubit, and it ignores controls.
 
 The estimator groups gates by the number of qubits they act on, including their controls.
 `H` and `measure` act on one qubit, `CX` and `SWAP` on two, `CCX` and `CSWAP` on three.
@@ -87,13 +88,13 @@ The estimator does not optimise the circuit: two `H` gates in a row on the same 
 The estimation stores the counts of every circuit until you run the next estimation.
 Several reporter blocks read the counts:
 
-| Block | Reports |
-| :-- | :-- |
-| `Estimated Quantum Resources` | The text for all circuits |
-| `Estimated Quantum Resources of Circuit #` | The text for one circuit |
-| `Estimated Qubit Requirements of Circuit #` | The number of qubits of one circuit |
-| `Estimated (n) Qubit Gates in Circuit #` | The number of gates that act on `n` qubits in one circuit |
-| `Estimated SWAP Gates in Circuit #` | The number of `SWAP` gates in one circuit |
+| Block                                       | Reports                                                   |
+| :------------------------------------------ | :-------------------------------------------------------- |
+| `Estimated Quantum Resources`               | The text for all circuits                                 |
+| `Estimated Quantum Resources of Circuit #`  | The text for one circuit                                  |
+| `Estimated Qubit Requirements of Circuit #` | The number of qubits of one circuit                       |
+| `Estimated (n) Qubit Gates in Circuit #`    | The number of gates that act on `n` qubits in one circuit |
+| `Estimated SWAP Gates in Circuit #`         | The number of `SWAP` gates in one circuit                 |
 
 The text has one section for the number of qubits and one section for each number of qubits that gates act on.
 The sections are sorted by this number, and the gates within a section are listed in the order in which they first appear in the circuit.

@@ -1,13 +1,13 @@
 # Quantum resource estimation
 
-*Estimated time: 10 minutes.*
+_Estimated time: 10 minutes._
 
 {download}`Download the template <templates/04-resource-estimation.sb3>`
 
 As programs get larger, simulation becomes impossible.
 The "Quantum" extension can only simulate up to 10 qubits.
 For larger circuits, **Resource Estimation** can still be used to reason about them.
-Open the editor at [https://munich-quantum-toolkit.github.io/scratch-quantum/](https://munich-quantum-toolkit.github.io/scratch-quantum/), then choose *File → Load from your computer* and open the file `04-resource-estimation.sb3`.
+Open the editor at [https://munich-quantum-toolkit.github.io/scratch-quantum/](https://munich-quantum-toolkit.github.io/scratch-quantum/), then choose _File → Load from your computer_ and open the file `04-resource-estimation.sb3`.
 It constructs a quantum circuit with 15 qubits that performs a Toffoli gate with 4 control qubits on a target.
 
 **(a)** The "main" block now contains the instruction "Perform Quantum Resource Estimation" rather than "Run Quantum Circuits".

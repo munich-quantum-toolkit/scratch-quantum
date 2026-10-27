@@ -1,10 +1,10 @@
 # Quantum circuits with Scratch
 
-*Estimated time: 5 minutes.*
+_Estimated time: 5 minutes._
 
 {download}`Download the template <templates/02-circuits.sb3>`
 
-Open the editor at [https://munich-quantum-toolkit.github.io/scratch-quantum/](https://munich-quantum-toolkit.github.io/scratch-quantum/), then choose *File → Load from your computer* and open the file `02-circuits.sb3`.
+Open the editor at [https://munich-quantum-toolkit.github.io/scratch-quantum/](https://munich-quantum-toolkit.github.io/scratch-quantum/), then choose _File → Load from your computer_ and open the file `02-circuits.sb3`.
 This file pre-loads the "Quantum" extension and contains the start of a quantum circuit: a quantum register with a single qubit, which a `say` block measures.
 Extend the circuit so that it sets up a Bell state by:
 

@@ -1,10 +1,10 @@
 # Quantum circuit verification
 
-*Estimated time: 10 minutes.*
+_Estimated time: 10 minutes._
 
 {download}`Download the template <templates/03-verification.sb3>`
 
-Open the editor at [https://munich-quantum-toolkit.github.io/scratch-quantum/](https://munich-quantum-toolkit.github.io/scratch-quantum/), then choose *File → Load from your computer* and open the file `03-verification.sb3`.
+Open the editor at [https://munich-quantum-toolkit.github.io/scratch-quantum/](https://munich-quantum-toolkit.github.io/scratch-quantum/), then choose _File → Load from your computer_ and open the file `03-verification.sb3`.
 This file contains two quantum circuits.
 Both circuits should prepare a Bell state, as in the previous exercise.
 While the left circuit is the same as earlier, the right circuit is a different (but equivalent) implementation.

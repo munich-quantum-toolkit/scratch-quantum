@@ -22,26 +22,27 @@ create quantum register [q] with (2) qubits :: extension
 
 Register name
 : Text, default `q`.
-  The name of the new register.
+The name of the new register.
 
 Number of qubits
 : Number, default `2`.
-  How many qubits the register has.
+How many qubits the register has.
 
 Behaviour
 : Adds a register with the given number of qubits to the circuit that runs this block.
-  All qubits start in the state $|0\rangle$, unless you start the circuits with [Run Quantum Circuits starting from a state](#run-quantum-circuits-starting-from-a-state).
-  Every `Quantum Circuit` script has its own registers; put this block before all blocks that use the register.
+All qubits start in the state $|0\rangle$, unless you start the circuits with [Run Quantum Circuits starting from a state](#run-quantum-circuits-starting-from-a-state).
+Every `Quantum Circuit` script has its own registers; put this block before all blocks that use the register.
 
 Notes
 : - A register name consists of letters, digits, and underscores and does not start with a digit.
-    For any other name, including the empty name, the console shows an error message; use valid names only.
-  - Use each register name only once per circuit.
-  - The number of qubits must be a whole number greater than 0.
-    For `0`, the console shows "Number of qubits must be greater than 0" and nothing happens.
-    For a negative number or text, the console shows "Qubit index must be a non-negative integer" and the block fails with an error.
-  - The simulator handles circuits with up to 10 qubits in total.
-    If a register does not fit, the console shows "Statevector too large to simulate" and the register is created with fewer qubits than you asked for.
+For any other name, including the empty name, the console shows an error message; use valid names only.
+
+- Use each register name only once per circuit.
+- The number of qubits must be a whole number greater than 0.
+  For `0`, the console shows "Number of qubits must be greater than 0" and nothing happens.
+  For a negative number or text, the console shows "Qubit index must be a non-negative integer" and the block fails with an error.
+- The simulator handles circuits with up to 10 qubits in total.
+  If a register does not fit, the console shows "Statevector too large to simulate" and the register is created with fewer qubits than you asked for.
 
 ### Qubit of register
 
@@ -51,23 +52,24 @@ Notes
 
 Qubit
 : Number, default `0`.
-  The index of the qubit; the first qubit has index 0.
+The index of the qubit; the first qubit has index 0.
 
 Register name
 : Text, default `q`.
-  The name of the register.
+The name of the register.
 
 Reports
 : Text of the form `register[index]`, for example `q[0]`.
 
 Notes
 : - The block only builds the text.
-    It does not check whether the register exists or how many qubits it has.
-  - Decimal numbers are cut to a whole number: `1.7` gives `q[1]`.
-  - An index beyond the end of a register is not detected.
-    It addresses the qubits of the register created after it: with `a` and `b` of two qubits each, `a[3]` is `b[1]`.
-    Only an index beyond the last qubit of the circuit, or a register name that does not exist, addresses no qubit, and blocks ignore it.
-    Stay within 0 to the size of the register minus 1.
+It does not check whether the register exists or how many qubits it has.
+
+- Decimal numbers are cut to a whole number: `1.7` gives `q[1]`.
+- An index beyond the end of a register is not detected.
+  It addresses the qubits of the register created after it: with `a` and `b` of two qubits each, `a[3]` is `b[1]`.
+  Only an index beyond the last qubit of the circuit, or a register name that does not exist, addresses no qubit, and blocks ignore it.
+  Stay within 0 to the size of the register minus 1.
 
 ### Qubits of register
 
@@ -77,16 +79,17 @@ Notes
 
 Register name
 : Text, default `q`.
-  The name of the register.
+The name of the register.
 
 Reports
 : All qubits of the register, joined with `and`, from qubit 0 to the last qubit.
-  For a register `q` with three qubits, the block reports `q[0] and q[1] and q[2]`.
+For a register `q` with three qubits, the block reports `q[0] and q[1] and q[2]`.
 
 Notes
 : - The block reads the size of the register from the running circuit, so it must come after `create quantum register`.
-  - For a register that does not exist, the block reports an empty text.
-  - Use it wherever a qubit is expected to address all qubits at once: a gate is applied to each qubit, `controlled on` uses all qubits as controls, and `measure` reports one character per qubit.
+
+- For a register that does not exist, the block reports an empty text.
+- Use it wherever a qubit is expected to address all qubits at once: a gate is applied to each qubit, `controlled on` uses all qubits as controls, and `measure` reports one character per qubit.
 
 ```{scratchblocks}
 Quantum Circuit :: hat extension
@@ -105,25 +108,26 @@ apply [X v] gate to [/] :: extension
 
 Gate
 : Menu, default `X`.
-  One of `X`, `Y`, `Z`, `H`, `S`, `T`.
-  The menu also accepts a reporter that provides the gate name.
+One of `X`, `Y`, `Z`, `H`, `S`, `T`.
+The menu also accepts a reporter that provides the gate name.
 
 Qubit
 : Qubit expression, default `/`.
-  The qubit or qubits to apply the gate to.
+The qubit or qubits to apply the gate to.
 
 Behaviour
 : Applies the gate to the qubit.
-  If the input holds several qubits, the gate is applied to each of them, one after the other.
-  Inside `controlled on` blocks, the gate is applied only if the controls are met.
-  {doc}`quantum-basics` describes the gates.
+If the input holds several qubits, the gate is applied to each of them, one after the other.
+Inside `controlled on` blocks, the gate is applied only if the controls are met.
+{doc}`quantum-basics` describes the gates.
 
 Notes
 : - The default `/` means "no qubit".
-    With it, the console shows "Invalid qubit value" and nothing happens.
-  - If the input is not a qubit expression, such as `hello`, the console shows a message and nothing happens.
-  - A qubit beyond the last qubit of the circuit is ignored; for an index beyond the end of a register, see [Qubit of register](#qubit-of-register).
-  - `negated control` has no effect in the target input: the gate is applied to the qubit as if it were not negated.
+With it, the console shows "Invalid qubit value" and nothing happens.
+
+- If the input is not a qubit expression, such as `hello`, the console shows a message and nothing happens.
+- A qubit beyond the last qubit of the circuit is ignored; for an index beyond the end of a register, see [Qubit of register](#qubit-of-register).
+- `negated control` has no effect in the target input: the gate is applied to the qubit as if it were not negated.
 
 ```{scratchblocks}
 Quantum Circuit :: hat extension
@@ -146,11 +150,11 @@ Second qubit
 
 Behaviour
 : Exchanges the states of the two qubits.
-  Inside `controlled on` blocks, the qubits are exchanged only if the controls are met.
+Inside `controlled on` blocks, the qubits are exchanged only if the controls are met.
 
 Notes
 : - Each input must hold exactly one qubit.
-    If one input is `/`, holds several qubits joined with `and`, or is not a qubit expression, the console shows a message and nothing happens.
+If one input is `/`, holds several qubits joined with `and`, or is not a qubit expression, the console shows a message and nothing happens.
 
 ```{scratchblocks}
 Quantum Circuit :: hat extension
@@ -176,17 +180,18 @@ controlled on [/] {
 
 Qubit
 : Qubit expression, default `/`.
-  The control qubit or qubits.
+The control qubit or qubits.
 
 Behaviour
 : Runs the blocks inside with the given qubits as controls.
-  Every gate, rotation, U3 gate, and SWAP gate inside is applied only if all controls are met.
-  If you nest `controlled on` blocks, the controls of all enclosing blocks apply.
-  For several controls in one block, combine them with `and`.
+Every gate, rotation, U3 gate, and SWAP gate inside is applied only if all controls are met.
+If you nest `controlled on` blocks, the controls of all enclosing blocks apply.
+For several controls in one block, combine them with `and`.
 
 Notes
 : - With the default `/`, the console shows "Invalid qubit value" and the blocks inside are skipped.
-  - The `measure` block does not take controls into account.
+
+- The `measure` block does not take controls into account.
 
 ```{scratchblocks}
 Quantum Circuit :: hat extension
@@ -219,9 +224,10 @@ Reports
 
 Notes
 : - If one input is `/`, the block reports the other input.
-    If both are `/`, it reports `/`.
-  - Gates treat `and` as a list of targets; `controlled on` treats it as several controls.
-    See {doc}`qubit-expressions`.
+If both are `/`, it reports `/`.
+
+- Gates treat `and` as a list of targets; `controlled on` treats it as several controls.
+  See {doc}`qubit-expressions`.
 
 ### Negated control
 
@@ -231,17 +237,18 @@ Notes
 
 Qubit
 : Qubit expression, default `/`.
-  The qubit that must be 0.
+The qubit that must be 0.
 
 Reports
 : The qubit with `not` in front, for example `not q[0]`.
-  For `/`, it reports `/`.
+For `/`, it reports `/`.
 
 Notes
 : - Use it only for one qubit at a time.
-    For a negated control on several qubits, negate each qubit and combine them with `and`.
-  - For an input with `and`, the console shows "Invalid negated expression" and the block reports nothing.
-  - Negating an already negated qubit also reports nothing, so do not nest `negated control` blocks.
+For a negated control on several qubits, negate each qubit and combine them with `and`.
+
+- For an input with `and`, the console shows "Invalid negated expression" and the block reports nothing.
+- Negating an already negated qubit also reports nothing, so do not nest `negated control` blocks.
 
 ```{scratchblocks}
 Quantum Circuit :: hat extension
@@ -266,20 +273,21 @@ Qubit
 
 Angle
 : Number, default `180`.
-  The angle in degrees, not radians.
+The angle in degrees, not radians.
 
 Axis
 : Menu, default `X`.
-  One of `X`, `Y`, `Z`.
-  The menu also accepts a reporter that provides the axis name.
+One of `X`, `Y`, `Z`.
+The menu also accepts a reporter that provides the axis name.
 
 Behaviour
 : Rotates each qubit of the input by the angle around the chosen axis.
-  Inside `controlled on` blocks, the rotation is applied only if the controls are met.
+Inside `controlled on` blocks, the rotation is applied only if the controls are met.
 
 Notes
 : - The default qubit `/` means "no qubit": the console shows "Invalid qubit value" and nothing happens.
-  - Negative angles and angles above 360 degrees are allowed.
+
+- Negative angles and angles above 360 degrees are allowed.
 
 ```{scratchblocks}
 Quantum Circuit :: hat extension
@@ -301,11 +309,12 @@ Angles
 
 Behaviour
 : For each qubit of the input, rotates by $\lambda$ around Z, then by $\theta$ around Y, and finally by $\varphi$ around Z.
-  Inside `controlled on` blocks, the rotations are applied only if the controls are met.
+Inside `controlled on` blocks, the rotations are applied only if the controls are met.
 
 Notes
 : - With `/` as qubit, the console shows "Invalid qubit value" and nothing happens.
-  - With all three angles 0, the gate does nothing.
+
+- With all three angles 0, the gate does nothing.
 
 ```{scratchblocks}
 Quantum Circuit :: hat extension
@@ -323,25 +332,26 @@ apply U3 gate to (qubit (0) of register [q] :: extension) with angles (90) (0) (
 
 Qubit
 : Qubit expression, default `/`.
-  The qubit or qubits to measure.
+The qubit or qubits to measure.
 
 Behaviour
 : Measures the qubits one after the other, in the order in which they are listed.
-  The outcome of each measurement is random, with the probabilities given by the state of the qubit.
-  After a measurement, the qubit stays in the measured state, so measuring it again gives the same result.
+The outcome of each measurement is random, with the probabilities given by the state of the qubit.
+After a measurement, the qubit stays in the measured state, so measuring it again gives the same result.
 
 Reports
 : A text with one character per measured qubit, `0` or `1`, in the order of the input.
-  For `qubits of register`, qubit 0 comes first.
-  For a single qubit, the text is `0` or `1`.
+For `qubits of register`, qubit 0 comes first.
+For a single qubit, the text is `0` or `1`.
 
 Notes
 : - The block has the shape of a condition.
-    In a condition, a single-qubit result counts as false for `0` and true for `1`, because Scratch treats the text `0` as false.
-    For several qubits, use the text result instead.
-  - With the default `/`, the console shows "Invalid qubit value" and the block reports nothing.
-  - A qubit beyond the last qubit of the circuit adds the text `undefined` to the result.
-  - Enclosing `controlled on` blocks do not affect the measurement.
+In a condition, a single-qubit result counts as false for `0` and true for `1`, because Scratch treats the text `0` as false.
+For several qubits, use the text result instead.
+
+- With the default `/`, the console shows "Invalid qubit value" and the block reports nothing.
+- A qubit beyond the last qubit of the circuit adds the text `undefined` to the result.
+- Enclosing `controlled on` blocks do not affect the measurement.
 
 ```{scratchblocks}
 Quantum Circuit :: hat extension
@@ -365,13 +375,14 @@ Quantum Circuit :: hat extension
 
 Behaviour
 : This hat block marks the start of a circuit.
-  The blocks below it are the circuit.
-  Click the script to run just this circuit, or use `Run Quantum Circuits` to run all circuits of the project.
-  Every run of a circuit starts with new, empty registers.
+The blocks below it are the circuit.
+Click the script to run just this circuit, or use `Run Quantum Circuits` to run all circuits of the project.
+Every run of a circuit starts with new, empty registers.
 
 Notes
 : - The green flag does not start `Quantum Circuit` scripts.
-  - The script can contain regular Scratch blocks, for example to store a measurement in a variable or to let a sprite say it.
+
+- The script can contain regular Scratch blocks, for example to store a measurement in a variable or to let a sprite say it.
 
 ### Run Quantum Circuits
 
@@ -381,8 +392,8 @@ Run Quantum Circuits :: extension
 
 Behaviour
 : Starts all `Quantum Circuit` scripts of the project at the same time and waits until all of them have finished.
-  The blocks below `Run Quantum Circuits` run afterwards.
-  Every circuit starts with all qubits in the state $|0\rangle$.
+The blocks below `Run Quantum Circuits` run afterwards.
+Every circuit starts with all qubits in the state $|0\rangle$.
 
 Notes
 : - Typically, you put this block below a `when green flag clicked` hat, as in the {doc}`quickstart`.
@@ -395,17 +406,18 @@ Run Quantum Circuits starting from (0) :: extension
 
 State
 : Number, default `0`.
-  The starting state of the qubits as a whole number.
+The starting state of the qubits as a whole number.
 
 Behaviour
 : Works like `Run Quantum Circuits`, but the qubits start in the basis state given by the number instead of $|0\rangle$.
-  The intended meaning is that the binary digits of the number give the initial state, with the lowest digit on the first qubit.
+The intended meaning is that the binary digits of the number give the initial state, with the lowest digit on the first qubit.
 
 Notes
 : - The state `0` gives the same result as `Run Quantum Circuits`.
-  - The block currently has known issues and does not always give this result.
-    It gives this state reliably only when the number has at least as many binary digits as the circuit has qubits; other values, and some typed numbers, can give wrong or too large states.
-    To start in a particular state, use `Run Quantum Circuits` and apply `X` gates at the start of the circuit instead; see {doc}`simulation`.
+
+- The block currently has known issues and does not always give this result.
+  It gives this state reliably only when the number has at least as many binary digits as the circuit has qubits; other values, and some typed numbers, can give wrong or too large states.
+  To start in a particular state, use `Run Quantum Circuits` and apply `X` gates at the start of the circuit instead; see {doc}`simulation`.
 
 ### Set Simulator
 
@@ -418,7 +430,7 @@ Simulator
 
 Behaviour
 : The menu has only one entry, the statevector simulator, which the extension always uses.
-  Choosing it has no effect.
+Choosing it has no effect.
 
 ## Resource estimation
 
@@ -433,13 +445,13 @@ Perform Quantum Resource Estimation :: extension
 
 Behaviour
 : Starts all `Quantum Circuit` scripts like `Run Quantum Circuits`, but only counts qubits and gates instead of simulating them.
-  The block waits until all circuits have finished and stores the counts for the reporters below.
-  A new estimation replaces the previous one.
+The block waits until all circuits have finished and stores the counts for the reporters below.
+A new estimation replaces the previous one.
 
 Notes
 : - The three settings blocks below apply to the script that contains them.
-    Put them above `Perform Quantum Resource Estimation` in the same script.
-    Without them, all three settings are off.
+Put them above `Perform Quantum Resource Estimation` in the same script.
+Without them, all three settings are off.
 
 ### Estimated Quantum Resources
 
@@ -449,9 +461,9 @@ Notes
 
 Reports
 : A text with the resources of all circuits.
-  For every circuit, it lists the total number of qubits and, for each number of qubits a gate acts on, the gates with their counts.
-  The texts of several circuits are separated by empty lines.
-  Before the first estimation, it reports "No Resource Estimate computed yet".
+For every circuit, it lists the total number of qubits and, for each number of qubits a gate acts on, the gates with their counts.
+The texts of several circuits are separated by empty lines.
+Before the first estimation, it reports "No Resource Estimate computed yet".
 
 ### Estimated Quantum Resources of Circuit
 
@@ -461,14 +473,14 @@ Reports
 
 Circuit
 : Number, default `1`.
-  The number of the circuit, starting at 1.
+The number of the circuit, starting at 1.
 
 Reports
 : The same text as `Estimated Quantum Resources`, but for one circuit.
 
 Notes
 : - For a number below 1, it reports "Please Select a Valid Circuit Index (Starting from 1)".
-    For a number beyond the last circuit, it reports an empty text.
+For a number beyond the last circuit, it reports an empty text.
 
 ### Estimated Qubit Requirements of Circuit
 
@@ -490,15 +502,15 @@ Reports
 
 Number of qubits
 : Number, default `2`.
-  How many qubits the counted gates act on, controls included.
+How many qubits the counted gates act on, controls included.
 
 Circuit
 : Number, default `1`.
 
 Reports
 : The number of gates that act on that many qubits.
-  If there are none, it reports 0.
-  Measurements count as one-qubit operations.
+If there are none, it reports 0.
+Measurements count as one-qubit operations.
 
 Notes
 : - For a number of qubits below 1, it reports "Please Select a Valid Qubit Count".
@@ -517,7 +529,8 @@ Reports
 
 Notes
 : - With SWAP decomposition enabled, `SWAP` gates are replaced by other gates, so the number is 0.
-  - A `SWAP` gate with controls is counted as `CSWAP` and is not included.
+
+- A `SWAP` gate with controls is counted as `CSWAP` and is not included.
 
 ### Enable or disable SWAP decomposition
 
@@ -527,11 +540,11 @@ Notes
 
 Setting
 : Menu, default `Enable`.
-  `Enable` or `Disable`.
+`Enable` or `Disable`.
 
 Behaviour
 : Sets whether the next estimation in this script replaces `SWAP` gates by three `X` gates.
-  A `SWAP` gate without controls becomes three CNOT gates; controls of the `SWAP` gate are kept.
+A `SWAP` gate without controls becomes three CNOT gates; controls of the `SWAP` gate are kept.
 
 ### Enable or disable negative control substitution
 
@@ -541,7 +554,7 @@ Behaviour
 
 Setting
 : Menu, default `Enable`.
-  `Enable` or `Disable`.
+`Enable` or `Disable`.
 
 Behaviour
 : Sets whether the next estimation in this script counts an extra `X` gate for every negated control.
@@ -554,11 +567,11 @@ Behaviour
 
 Setting
 : Menu, default `Enable`.
-  `Enable` or `Disable`.
+`Enable` or `Disable`.
 
 Behaviour
 : Sets whether the next estimation in this script breaks down gates with several controls into simpler gates.
-  This needs extra (ancilla) qubits, which the estimation adds to the qubit count.
+This needs extra (ancilla) qubits, which the estimation adds to the qubit count.
 
 ## Compatibility
 
@@ -570,9 +583,10 @@ Export Circuits to MLIR :: extension
 
 Behaviour
 : Exports every `Quantum Circuit` script of the project, from all sprites, into one file named `quantum_circuits.mlir`.
-  The browser downloads the file and shows a message.
-  {doc}`mlir-export` describes the file and the supported blocks.
+The browser downloads the file and shows a message.
+{doc}`mlir-export` describes the file and the supported blocks.
 
 Notes
 : - If a circuit cannot be exported, no file is downloaded and a message with the reason is shown instead.
-  - If the project has no `Quantum Circuit` script, there is nothing to export and a message says so.
+
+- If the project has no `Quantum Circuit` script, there is nothing to export and a message says so.

@@ -10,18 +10,18 @@ The extension lives in three repositories.
 
 `munich-quantum-toolkit/scratch-quantum`
 : This [repository](https://github.com/munich-quantum-toolkit/scratch-quantum) holds the deployed editor and this documentation.
-  The built editor is stored at the root of the repository, and GitHub Pages serves it from the `main` branch at {{ editor_url }}.
-  The documentation sources are in the `docs/` directory.
+The built editor is stored at the root of the repository, and GitHub Pages serves it from the `main` branch at {{ editor_url }}.
+The documentation sources are in the `docs/` directory.
 
 `DRovara/scratch-quantum-vm`
 : A fork of the Scratch virtual machine (`scratch-vm`).
-  It contains the extension in `src/extensions/mqt_quantum/`.
-  The default branch is `develop`.
+It contains the extension in `src/extensions/mqt_quantum/`.
+The default branch is `develop`.
 
 `DRovara/scratch-quantum-gui`
 : A fork of the Scratch editor interface (`scratch-gui`).
-  It contains the editor, including the entry for the extension in the extension library.
-  The default branch is `develop`.
+It contains the editor, including the entry for the extension in the extension library.
+The default branch is `develop`.
 
 The two forks are currently private.
 If you need access, ask the maintainers, for example through the {doc}`support page <support>`.
