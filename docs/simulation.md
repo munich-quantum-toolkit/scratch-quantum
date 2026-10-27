@@ -84,7 +84,8 @@ Run Quantum Circuits starting from (5) :: extension
 
 The binary digits of the number give the initial state, with the lowest digit on the first qubit that the circuit creates, then the next qubits in the order of their creation, across all registers.
 The number `5` is `101` in binary, so the first qubit starts as 1, the second as 0, and the third as 1.
-The block uses the binary digits of the number, not its decimal digits: typing `101` means the number one hundred and one, not the bit pattern 1-0-1, which is the number `5`.
+The block uses the binary digits of the number, not its decimal digits: typing `10` means the number ten, which is `1010` in binary, so on two qubits qubit 0 starts as 0 and qubit 1 as 1 (`measure (qubits of register [q])` shows `01`).
+For qubit 0 = 1 and qubit 1 = 0, use `1`.
 Digits beyond the last qubit of the circuit are ignored.
 The number `0` is the same as `Run Quantum Circuits`.
 The starting state applies to every circuit that the block starts, so each circuit starts from the same state.

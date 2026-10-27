@@ -419,7 +419,7 @@ Digits beyond the last qubit of the circuit are ignored.
 Notes
 : - The state `0` gives the same result as `Run Quantum Circuits`.
 
-- The block uses the binary digits of the number: `101` means the number 101, and `5` gives the bit pattern 1-0-1.
+- The block uses the binary digits of the number: `10` means ten (`1010` in binary), not the bit pattern 1-0, which is the number `1`.
 - For a negative number, a decimal number, or text, the block shows a message and no circuit runs.
 - For examples and details, see {doc}`simulation`.
 
