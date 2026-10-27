@@ -26,8 +26,7 @@ exports[`test/integration/quantum_mlir_export.js TAP exports all circuits of the
 // Exported from Scratch by the MQT quantum extension
 module {
   // 'Quantum Circuit' script of sprite "Sprite1"
-  func.func private @circuit_1() {
-    %q = memref.alloc() {mqt.register_name = "circuit_1_q"} : memref<2x!qc.qubit>
+  func.func private @circuit_1(%q: memref<2x!qc.qubit>) {
     %c0 = arith.constant 0 : index
     %0 = memref.load %q[%c0] : memref<2x!qc.qubit>
     qc.h %0 : !qc.qubit
@@ -42,12 +41,10 @@ module {
     %c0_2 = arith.constant 0 : index
     %3 = memref.load %q[%c0_2] : memref<2x!qc.qubit>
     %4 = qc.measure %3 : !qc.qubit -> i1
-    memref.dealloc %q : memref<2x!qc.qubit>
     return
   }
   // 'Quantum Circuit' script of sprite "Sprite1"
-  func.func private @circuit_2() {
-    %q = memref.alloc() {mqt.register_name = "circuit_2_q"} : memref<2x!qc.qubit>
+  func.func private @circuit_2(%q: memref<2x!qc.qubit>) {
     %c0 = arith.constant 0 : index
     %0 = memref.load %q[%c0] : memref<2x!qc.qubit>
     qc.h %0 : !qc.qubit
@@ -68,12 +65,15 @@ module {
     %c0_2 = arith.constant 0 : index
     %5 = memref.load %q[%c0_2] : memref<2x!qc.qubit>
     %6 = qc.measure %5 : !qc.qubit -> i1
-    memref.dealloc %q : memref<2x!qc.qubit>
     return
   }
   func.func @main() attributes {mqt.entry_point} {
-    func.call @circuit_1() : () -> ()
-    func.call @circuit_2() : () -> ()
+    %circuit_1_q = memref.alloc() {mqt.register_name = "circuit_1_q"} : memref<2x!qc.qubit>
+    func.call @circuit_1(%circuit_1_q) : (memref<2x!qc.qubit>) -> ()
+    memref.dealloc %circuit_1_q : memref<2x!qc.qubit>
+    %circuit_2_q = memref.alloc() {mqt.register_name = "circuit_2_q"} : memref<2x!qc.qubit>
+    func.call @circuit_2(%circuit_2_q) : (memref<2x!qc.qubit>) -> ()
+    memref.dealloc %circuit_2_q : memref<2x!qc.qubit>
     return
   }
 }
@@ -153,8 +153,7 @@ exports[`test/integration/quantum_mlir_export.js TAP exports all circuits of the
 // Exported from Scratch by the MQT quantum extension
 module {
   // 'Quantum Circuit' script of sprite "Sprite1"
-  func.func private @circuit_1() {
-    %q = memref.alloc() {mqt.register_name = "circuit_1_q"} : memref<5x!qc.qubit>
+  func.func private @circuit_1(%q: memref<5x!qc.qubit>) {
     %c0 = arith.constant 0 : index
     %0 = memref.load %q[%c0] : memref<5x!qc.qubit>
     qc.h %0 : !qc.qubit
@@ -220,12 +219,10 @@ module {
     %c4_1 = arith.constant 4 : index
     %20 = memref.load %q[%c4_1] : memref<5x!qc.qubit>
     qc.swap %19, %20 : !qc.qubit, !qc.qubit
-    memref.dealloc %q : memref<5x!qc.qubit>
     return
   }
   // 'Quantum Circuit' script of sprite "Sprite1"
-  func.func private @circuit_2() {
-    %q = memref.alloc() {mqt.register_name = "circuit_2_q"} : memref<5x!qc.qubit>
+  func.func private @circuit_2(%q: memref<5x!qc.qubit>) {
     %c0 = arith.constant 0 : index
     %0 = memref.load %q[%c0] : memref<5x!qc.qubit>
     qc.h %0 : !qc.qubit
@@ -291,12 +288,15 @@ module {
     %c4_1 = arith.constant 4 : index
     %20 = memref.load %q[%c4_1] : memref<5x!qc.qubit>
     qc.swap %19, %20 : !qc.qubit, !qc.qubit
-    memref.dealloc %q : memref<5x!qc.qubit>
     return
   }
   func.func @main() attributes {mqt.entry_point} {
-    func.call @circuit_1() : () -> ()
-    func.call @circuit_2() : () -> ()
+    %circuit_1_q = memref.alloc() {mqt.register_name = "circuit_1_q"} : memref<5x!qc.qubit>
+    func.call @circuit_1(%circuit_1_q) : (memref<5x!qc.qubit>) -> ()
+    memref.dealloc %circuit_1_q : memref<5x!qc.qubit>
+    %circuit_2_q = memref.alloc() {mqt.register_name = "circuit_2_q"} : memref<5x!qc.qubit>
+    func.call @circuit_2(%circuit_2_q) : (memref<5x!qc.qubit>) -> ()
+    memref.dealloc %circuit_2_q : memref<5x!qc.qubit>
     return
   }
 }

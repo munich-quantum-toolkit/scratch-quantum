@@ -47,8 +47,8 @@ test('the export block downloads every circuit of the project, skipping clones',
     extension.toMLIR({}, util);
     t.equal(downloads.length, 1);
     t.equal(downloads[0].name, 'quantum_circuits.mlir');
-    t.match(downloads[0].text, 'func.call @circuit_1() : () -> ()');
-    t.match(downloads[0].text, 'func.call @circuit_2() : () -> ()');
+    t.match(downloads[0].text, 'func.call @circuit_1(%circuit_1_q) : (memref<1x!qc.qubit>) -> ()');
+    t.match(downloads[0].text, 'func.call @circuit_2(%circuit_2_r) : (memref<1x!qc.qubit>) -> ()');
     t.notMatch(downloads[0].text, '@circuit_3', 'clones are not exported');
     t.notMatch(downloads[0].text, '"circuit_3_c"', 'the clone register does not appear');
     t.same(notes, ['Exported circuits to quantum_circuits.mlir']);
