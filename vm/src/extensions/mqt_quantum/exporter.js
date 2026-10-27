@@ -41,7 +41,7 @@ const isSkipped = opcode => SKIPPED_PREFIXES.some(prefix => opcode.startsWith(pr
 const variableId = block => block.fields.VARIABLE.id;
 
 /**
- * Translates one 'Quantum Circuit' script into a `qc` MLIR module.
+ * Translates one 'Quantum Circuit' script into the body of a `qc` MLIR function (see `MLIREmitter.toFunction`).
  *
  * Handlers are looked up by opcode: `stmt_<opcode>` for stack blocks, `num_<opcode>` for reporters
  * used as numbers, `bool_<opcode>` for conditions and `qubits_<opcode>` for qubit inputs.
@@ -49,7 +49,6 @@ const variableId = block => block.fields.VARIABLE.id;
 class Exporter {
     constructor (blocks, options) {
         this.blocks = blocks;
-        this.spriteName = options.spriteName;
         this.lookupVariable = options.lookupVariable;
         // Registers are function arguments: record them, but leave allocation to the caller.
         this.registersAsArguments = Boolean(options.registersAsArguments);

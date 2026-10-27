@@ -19,7 +19,7 @@ const formatF64 = function (value) {
 };
 
 /**
- * Builds the text of an MLIR `func.func @main` body: fresh SSA names, indentation of nested
+ * Builds the text of an MLIR `func.func` body: fresh SSA names, indentation of nested
  * regions and constants. Knows nothing about Scratch.
  */
 class MLIREmitter {
