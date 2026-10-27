@@ -27,13 +27,13 @@ say <measure (qubit (0) of register [q] :: extension) :: extension>
 ## Why this extension
 
 The extension is built to teach _quantum design automation_: the methods that compile, estimate the resources of, and verify quantum circuits so that nobody has to do it by hand.
-These methods are hard to learn from textual representations such as OpenQASM or MLIR, and graphical circuit editors do not connect to them.
+These methods are hard to learn from textual representations such as OpenQASM or MLIR, and graphical circuit editors only loosely connect to them.
 Blocks make them approachable, because you see and change a circuit directly {cite:p}`qce_2026_01`.
 
 Your circuits live inside normal Scratch programs.
 Loops, conditionals and variables work around and inside a circuit, so a repeated step is a `repeat` block instead of a long circuit that is unrolled by hand.
 The following script prepares a GHZ state on four qubits.
-The counter variable `i` selects the target of each controlled X gate, so a larger GHZ state only needs a larger register and more repetitions:
+Create a variable `i` first; this counter variable selects the target of each controlled X gate, so a larger GHZ state only needs a larger register and more repetitions:
 
 ```{scratchblocks}
 Quantum Circuit :: hat extension
