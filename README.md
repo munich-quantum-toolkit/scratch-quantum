@@ -38,6 +38,21 @@ Simulation and resource estimation run in the same place, and the MLIR export op
 
 If you have any questions, feel free to create an [issue](https://github.com/munich-quantum-toolkit/scratch-quantum/issues) on [GitHub](https://github.com/munich-quantum-toolkit/scratch-quantum).
 
+## Building the Editor
+
+This repository contains the source of the extension, not a copy of Scratch.
+The build downloads `scratch-vm` and `scratch-gui` at pinned versions, applies a few patches, and adds the extension.
+You need Node.js 20 or later and git:
+
+```bash
+npm run setup   # download and prepare Scratch, and install its dependencies
+npm run dev     # run the editor at http://localhost:8601
+npm test        # run the tests of the extension
+npm run build   # build the editor into build/
+```
+
+The [development guide](https://mqt.readthedocs.io/projects/scratch-quantum/en/latest/development.html) explains the details.
+
 ## Contributors and Supporters
 
 The _[Munich Quantum Toolkit (MQT)](https://mqt.readthedocs.io)_ is developed by the [Chair for Design Automation](https://www.cda.cit.tum.de/) at the [Technical University of Munich](https://www.tum.de/) and supported by the [Munich Quantum Software Company (MQSC)](https://munichquantum.software).

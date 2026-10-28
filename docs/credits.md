@@ -9,8 +9,8 @@ The blocks in these pages are drawn with [scratchblocks](https://github.com/scra
 
 ## Licenses
 
-The editor, and so the web app that is deployed from this repository, is built from forks of the `scratch-vm` and `scratch-gui` repositories of the Scratch Foundation.
-Both upstream repositories are licensed under the GNU Affero General Public License v3.0 (AGPL-3.0-only), and the forks keep that license.
+The editor, and so the web app that is deployed from this repository, is built from the `scratch-vm` and `scratch-gui` repositories of the Scratch Foundation, at versions pinned in this repository, together with the extension and a few patches.
+Both upstream repositories are licensed under the GNU Affero General Public License v3.0 (AGPL-3.0-only), and the files in `vm/`, `gui/`, and `patches/` of this repository keep that license.
 You can read the license texts in the repositories of [`scratch-vm`](https://github.com/scratchfoundation/scratch-vm/blob/develop/LICENSE) and [`scratch-gui`](https://github.com/scratchfoundation/scratch-gui/blob/develop/LICENSE).
 
 [scratchblocks](https://github.com/scratchblocks/scratchblocks), which draws the blocks in these pages, is licensed under the MIT License, Copyright © Tim Radvan.

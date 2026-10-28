@@ -1,152 +1,123 @@
 # Development
 
 This page is for you if you want to run the editor yourself, change the extension, update the deployed editor, or work on this documentation.
-It describes the repositories, how to run and test the code, how the editor is deployed, and how to build the documentation.
+It describes the layout of this repository, how to run and test the code, how the editor is deployed, and how to build the documentation.
 The {doc}`architecture` page explains how the extension is built, and {doc}`contributing` describes how to propose changes.
 
-## Repositories
+## Repository layout
 
-The extension lives in three repositories.
+This [repository](https://github.com/munich-quantum-toolkit/scratch-quantum) holds the source of the extension, this documentation, and the scripts that build the editor.
+It does not contain a copy of Scratch.
+Instead, the scripts download the Scratch virtual machine (`scratch-vm`) and editor interface (`scratch-gui`) at the versions pinned in `upstream.json`, and add the extension to them.
 
-`munich-quantum-toolkit/scratch-quantum`
-: This [repository](https://github.com/munich-quantum-toolkit/scratch-quantum) holds the deployed editor and this documentation.
-The built editor is stored at the root of the repository, and GitHub Pages serves it from the `main` branch at {{ editor_url }}.
-The documentation sources are in the `docs/` directory.
+`vm/`
+: The files that the extension adds to `scratch-vm`, at the same paths as in `scratch-vm`: the extension in `vm/src/extensions/mqt_quantum/`, its tests in `vm/test/`, and the test snapshots in `vm/tap-snapshots/`.
 
-`DRovara/scratch-quantum-vm`
-: A fork of the Scratch virtual machine (`scratch-vm`).
-It contains the extension in `src/extensions/mqt_quantum/`.
-The default branch is `develop`.
+`gui/`
+: The files that the extension adds to `scratch-gui`: the icons of the extension in `gui/src/lib/libraries/extensions/quantum/`.
 
-`DRovara/scratch-quantum-gui`
-: A fork of the Scratch editor interface (`scratch-gui`).
-It contains the editor, including the entry for the extension in the extension library.
-The default branch is `develop`.
+`patches/`
+: Changes to existing files of `scratch-vm` and `scratch-gui`, one patch per change.
+They let blocks set their own colour, register the extension, and add it to the extension library.
 
-The two forks are currently private.
-If you need access, ask the maintainers, for example through the {doc}`support page <support>`.
+`scripts/`
+: The scripts behind the `npm run` commands on this page, with their tests in `scripts/test/`.
 
-The examples on this page assume that you cloned the repositories next to each other.
-The names `scratch-vm`, `scratch-gui`, and `scratch-quantum` below refer to the three checkouts.
+`docs/`
+: This documentation.
+
+The scripts put the patched upstream repositories in `.upstream/vm` and `.upstream/gui`, which git ignores, and copy `vm/` and `gui/` into them.
+Always edit the files in `vm/` and `gui/`, never their copies in `.upstream/`: the scripts overwrite the copies.
+The copies are read-only, so most editors warn you if you open one by mistake.
 
 ## Running the editor locally
 
-You need [Node.js](https://nodejs.org/) and `npm`.
-Both forks pin Node.js 20 in their `.nvmrc` file.
+You need [Node.js](https://nodejs.org/) 20 or later (`.nvmrc` pins version 20), `npm`, and `git`.
 
-The editor consumes the virtual machine as a package.
-To see your changes to the extension in the editor, build the virtual machine and link it into the editor.
-
-1. In `scratch-vm`, install the dependencies and build the virtual machine:
+1. Download and patch the upstream repositories and install their dependencies:
 
    ```bash
-   npm install
-   npm run build
+   npm run setup
    ```
 
-   The `build` script generates the API documentation (`npm run docs`) and then bundles the virtual machine with webpack.
-   The editor uses the web build in `dist/web`.
+   The first run takes a few minutes.
+   Run it again after you pull changes to `upstream.json` or `patches/`; it only redoes what changed.
 
-2. Link the virtual machine into the editor.
-   In `scratch-vm`, run `npm link`.
-   In `scratch-gui`, install the dependencies and link the package:
+2. Start the editor:
 
    ```bash
-   npm install
-   npm link scratch-vm
-   ```
-
-   `npm link` replaces `node_modules/scratch-vm` of the editor with a symbolic link to your checkout of the virtual machine.
-   Run `npm link scratch-vm` after `npm install`: installing again resets the link.
-
-3. Start the development server of the editor:
-
-   ```bash
-   npm start
+   npm run dev
    ```
 
    The editor is then available at `http://localhost:8601`.
    You can choose another port with the `PORT` environment variable.
-
-After you change the extension, run `npm run build` in `scratch-vm` again and reload the editor.
-Alternatively, run `npm run watch` in `scratch-vm`, which rebuilds the virtual machine whenever a source file changes.
+   While `npm run dev` runs, it copies every change in `vm/` and `gui/` to `.upstream/`, and the editor rebuilds.
+   Reload the page to see your change.
 
 ## Running the tests
 
-The tests of the extension are in `scratch-vm`.
-Run them from the root of that repository:
+Run the tests of the extension from the root of this repository:
 
 ```bash
-npx tap --no-coverage test/unit/extension_quantum_*.js test/integration/quantum_mlir_export.js
+npm test
+```
+
+To run single test files, pass their paths relative to `vm/`:
+
+```bash
+npm test -- test/unit/extension_quantum_gates.js
 ```
 
 The tests of the {doc}`MLIR export <mlir-export>` can validate the exported files with the compiler driver `mqt-cc` of {doc}`MQT Core <core:index>`.
 This validation is skipped unless you set the environment variable `MQT_CC` to the path of an `mqt-cc` binary:
 
 ```bash
-MQT_CC=/path/to/mqt-cc npx tap --no-coverage test/unit/extension_quantum_*.js test/integration/quantum_mlir_export.js
+MQT_CC=/path/to/mqt-cc npm test
 ```
 
-Check new and changed files with ESLint:
+Check the code with ESLint:
 
 ```bash
-npx eslint src/extensions/mqt_quantum/<file>.js
+npm run lint
 ```
 
-The file `src/extensions/mqt_quantum/index.js` has older lint errors that are not fixed yet.
-Make sure that you do not add new ones.
+ESLint still reports errors in older code of the extension that are not fixed yet.
+Make sure that you do not add new ones in the files you change.
 
-The complete test suite of `scratch-vm` (`npm run tap`) also contains the upstream tests of Scratch.
+The scripts in `scripts/` have their own tests:
+
+```bash
+npm run test:scripts
+```
+
+The complete test suite of `scratch-vm` also contains the upstream tests of Scratch; run it with `npm run tap` in `.upstream/vm`.
 The test `test/unit/io_clock.js` can fail by chance when the machine is under load; it is unrelated to the extension.
+
+## Changing Scratch itself
+
+Most changes only touch files in `vm/` and `gui/`.
+If you need to change a file that belongs to `scratch-vm` or `scratch-gui`, change it in `.upstream/` and save the change as a patch:
+
+1. Edit the file in `.upstream/vm` or `.upstream/gui`.
+2. Commit the change in that directory, with a message that explains it, for example `git -C .upstream/vm commit -am "Explain the change"`.
+   To change an existing patch instead, change its commit, for example with `git rebase -i`.
+3. Write the patches with `npm run patches:update`.
+4. Commit the changed files in `patches/` in this repository.
+
+`npm run setup` refuses to replace an upstream directory that contains changes that are not in `patches/` yet, so you cannot lose them by accident.
+To replace such a directory anyway, run `npm run setup -- --force`: it moves the old directory aside, to `.upstream/vm.bak-<time>` or `.upstream/gui.bak-<time>`, instead of deleting it.
 
 ## Deploying the editor
 
-The editor at {{ editor_url }} is a build of `scratch-gui` that is committed to the root of this repository.
-To update it:
+You do not deploy the editor by hand.
+The workflow `.github/workflows/editor.yml` tests and builds the editor for every pull request and every push to `main`:
 
-1. Build the virtual machine in `scratch-vm` (`npm run build`), as described above.
-   Build it from the branch you release, normally `develop`, with all features and fixes that you want to ship merged.
-   Make sure that the link to the virtual machine is in place.
+- A push to `main` deploys the build to the `gh-pages` branch, from which GitHub Pages serves {{ editor_url }}.
+- A pull request from a branch of this repository gets a preview below {{ editor_url }}, in `pr-preview/pr-<number>/`, and a bot posts the link in the pull request.
+  Closing the pull request removes the preview.
+  Pull requests from forks are tested and built, but get no preview.
 
-2. In `scratch-gui`, build the editor:
-
-   ```bash
-   npm run build
-   ```
-
-   The build removes the old `build/` directory and writes the new one.
-
-3. In `scratch-quantum`, remove the files of the previous build and copy the new build to the root:
-
-   ```bash
-   rm -rf chunks static *.html *.js *.map *.hex
-   cp -r /path/to/scratch-gui/build/. .
-   ```
-
-   The build consists of the HTML pages (`index.html`, `blocks-only.html`, `compatibility-testing.html`, `player.html`), their scripts and source maps (`gui.js`, `blocksonly.js`, `compatibilitytesting.js`, `player.js`, `extension-worker.js`, and the `.map` files), the `chunks/` and `static/` directories, and one `.hex` file.
-   Removing the old files first prevents outdated chunks from piling up, because their file names change with their contents.
-
-   Do not delete or overwrite the files that do not belong to the build: `docs/`, `README.md`, `.readthedocs.yaml`, `pyproject.toml`, `uv.lock`, `.gitignore`, and `.nojekyll`.
-   The commands above leave them alone.
-   Check `git status` before you commit: only build files should change.
-
-4. Commit the result with a message that contains `[skip ci]` and push to `main`:
-
-   ```bash
-   git add -A
-   git commit -m "build: :construction_worker: update the web app [skip ci]"
-   git push origin main
-   ```
-
-   The marker `[skip ci]` tells Read the Docs not to rebuild the documentation for this commit, because the documentation does not change.
-
-GitHub Pages then serves the new build at {{ editor_url }}.
-The `.nojekyll` file at the root switches off Jekyll, so that GitHub Pages serves the files unchanged.
-
-```{note}
-The `deploy` script in `scratch-gui` is inherited from the upstream project and publishes to a `gh-pages` branch.
-This editor is not deployed that way, so do not use it.
-```
+To build the editor locally, run `npm run build`; the result is in `build/`.
 
 ## Building the documentation
 
@@ -208,7 +179,6 @@ Cite the publications with `{cite:p}` and the keys `qce_2026_01` and `mqt`; see 
 The documentation is built and hosted by [Read the Docs](https://about.readthedocs.com/) and appears as a part of the Munich Quantum Toolkit documentation at `https://mqt.readthedocs.io/projects/scratch-quantum`.
 The build is configured in `.readthedocs.yaml` at the root of the repository.
 It installs the dependencies with `uv` and builds the HTML version and a zipped HTML version.
-A build is skipped when the message of the latest commit contains `skip ci`.
 
 You set up the project once on Read the Docs, as a maintainer of the MQT project:
 
