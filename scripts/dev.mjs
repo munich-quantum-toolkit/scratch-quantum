@@ -35,6 +35,11 @@ main(import.meta.url, () => {
       detached: !WINDOWS,
     }),
   );
+  // If this process dies from an uncaught error, no handler below runs, but webpack must not outlive it.
+  // Killing a process group that is already gone is harmless.
+  process.on("exit", () => {
+    for (const child of children) killTree(child);
+  });
   let stopping = false;
   const stop = (code) => {
     if (stopping) return;
