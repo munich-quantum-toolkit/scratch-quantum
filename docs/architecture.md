@@ -150,5 +150,5 @@ To add a block to the extension, work through the following steps.
    You can also leave the block out.
    Without a handler, the export reports the block as unsupported, which is the right behavior for blocks that have no MLIR equivalent.
    If the block belongs to the extension but does nothing in the exported circuit, add its full opcode, for example `quantum_toMLIR`, to the list of skipped opcodes in `exporter.js`.
-5. Add tests in `test/unit/` of `scratch-vm`, next to the existing `extension_quantum_*.js` tests.
+5. Add tests in `vm/test/unit/` of this repository, next to the existing `extension_quantum_*.js` tests.
 6. Document the block in {doc}`blocks`, and, where it applies, on the pages for {doc}`running circuits <simulation>`, {doc}`resource estimation <resource-estimation>`, and the {doc}`MLIR export <mlir-export>`.

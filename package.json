@@ -1,0 +1,19 @@
+{
+  "name": "scratch-quantum",
+  "private": true,
+  "description": "Quantum computing extension for Scratch, built on pinned versions of scratch-vm and scratch-gui",
+  "license": "(MIT AND AGPL-3.0-only)",
+  "engines": {
+    "node": ">=20.12"
+  },
+  "scripts": {
+    "setup": "node scripts/setup.mjs",
+    "sync": "node scripts/sync.mjs",
+    "dev": "node scripts/dev.mjs",
+    "build": "node scripts/build.mjs",
+    "test": "node scripts/test.mjs",
+    "test:scripts": "node --test scripts/test/*.test.mjs",
+    "lint": "node scripts/lint.mjs",
+    "patches:update": "node scripts/patches.mjs"
+  }
+}

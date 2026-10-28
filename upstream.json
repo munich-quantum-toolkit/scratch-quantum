@@ -1,0 +1,12 @@
+{
+  "vm": {
+    "repository": "https://github.com/scratchfoundation/scratch-vm",
+    "commit": "661546a0a442ecc264d2e3d2bec630195e71c6e6",
+    "version": "5.0.247"
+  },
+  "gui": {
+    "repository": "https://github.com/scratchfoundation/scratch-gui",
+    "commit": "ceb1863ec2df72e927e3dbfcd945623baccaf2c5",
+    "version": "5.1.52"
+  }
+}

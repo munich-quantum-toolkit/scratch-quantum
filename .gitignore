@@ -1,3 +1,6 @@
 .venv/
 docs/_build/
 __pycache__/
+/.upstream/
+/node_modules/
+/build/

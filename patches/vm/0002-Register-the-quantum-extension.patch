@@ -1,0 +1,21 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Damian Rovara <damianrovara@gmail.com>
+Date: Wed, 28 Oct 2026 10:54:55 +0100
+Subject: [PATCH] Register the quantum extension
+
+Adds `quantum` to the built-in extensions. The extension itself is in `src/extensions/mqt_quantum/`.
+
+diff --git a/src/extension-support/extension-manager.js b/src/extension-support/extension-manager.js
+index 94ce3b1..4f667cf 100644
+--- a/src/extension-support/extension-manager.js
++++ b/src/extension-support/extension-manager.js
+@@ -23,7 +23,8 @@ const builtinExtensions = {
+     ev3: () => require('../extensions/scratch3_ev3'),
+     makeymakey: () => require('../extensions/scratch3_makeymakey'),
+     boost: () => require('../extensions/scratch3_boost'),
+-    gdxfor: () => require('../extensions/scratch3_gdx_for')
++    gdxfor: () => require('../extensions/scratch3_gdx_for'),
++    quantum: () => require('../extensions/mqt_quantum'),
+ };
+ 
+ /**

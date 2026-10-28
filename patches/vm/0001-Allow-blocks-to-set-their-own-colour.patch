@@ -1,0 +1,20 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Damian Rovara <damianrovara@gmail.com>
+Date: Wed, 28 Oct 2026 10:54:55 +0100
+Subject: [PATCH] Allow blocks to set their own colour
+
+An extension block can set `color` in its block info. The block then uses that colour instead of the colour of its category. The quantum extension uses this to draw its blocks in different colours.
+
+diff --git a/src/engine/runtime.js b/src/engine/runtime.js
+index 4a34e3c..55024b1 100644
+--- a/src/engine/runtime.js
++++ b/src/engine/runtime.js
+@@ -1155,7 +1155,7 @@ class Runtime extends EventEmitter {
+             type: extendedOpcode,
+             inputsInline: true,
+             category: categoryInfo.name,
+-            colour: categoryInfo.color1,
++            colour: "color" in blockInfo ? blockInfo.color : categoryInfo.color1,
+             colourSecondary: categoryInfo.color2,
+             colourTertiary: categoryInfo.color3
+         };

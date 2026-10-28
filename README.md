@@ -38,6 +38,21 @@ Simulation and resource estimation run in the same place, and the MLIR export op
 
 If you have any questions, feel free to create an [issue](https://github.com/munich-quantum-toolkit/scratch-quantum/issues) on [GitHub](https://github.com/munich-quantum-toolkit/scratch-quantum).
 
+## Building the Editor
+
+This repository contains the source of the extension, not a copy of Scratch.
+The build downloads `scratch-vm` and `scratch-gui` at pinned versions, applies a few patches, and adds the extension.
+You need Node.js 20.12 or later and git:
+
+```bash
+npm run setup   # download and prepare Scratch, and install its dependencies
+npm run dev     # run the editor at http://localhost:8601
+npm test        # run the tests of the extension
+npm run build   # build the editor into build/
+```
+
+The [development guide](https://mqt.readthedocs.io/projects/scratch-quantum/en/latest/development.html) explains the details.
+
 ## Contributors and Supporters
 
 The _[Munich Quantum Toolkit (MQT)](https://mqt.readthedocs.io)_ is developed by the [Chair for Design Automation](https://www.cda.cit.tum.de/) at the [Technical University of Munich](https://www.tum.de/) and supported by the [Munich Quantum Software Company (MQSC)](https://munichquantum.software).
@@ -116,6 +131,9 @@ When discussing the overall MQT project or its ecosystem, cite the MQT Handbook:
 The editor is built on Scratch 3.0, developed by the [Scratch Foundation](https://scratch.mit.edu).
 This project is not affiliated with or endorsed by the Scratch Foundation or MIT.
 The Scratch trademarks, including the Scratch name, logo, and Scratch Cat, are property of the Massachusetts Institute of Technology (MIT).
+
+This repository is licensed under the MIT License, except for the directories `vm/`, `gui/`, and `patches/`, which are licensed under the GNU Affero General Public License v3.0 (AGPL-3.0-only) like Scratch itself.
+The deployed editor contains Scratch and is therefore distributed under the AGPL-3.0.
 
 ---
 
