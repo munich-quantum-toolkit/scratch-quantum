@@ -32,6 +32,56 @@ const ResourceType = {
     SWAP: 'swap'
 };
 
+const _getResourceEstimateOfCircuit = function (estimatesByCircuit, circuitNumber, resourceType) {
+    if (!(circuitNumber in estimatesByCircuit)) {
+        return '';
+    }
+
+    const estimate = estimatesByCircuit[circuitNumber];
+    const qubits = estimate.qubits;
+
+
+    if (resourceType === ResourceType.ALL) {
+        let result = '';
+        result += `Total Qubits: ${qubits}\n\n`;
+        for (const count of Object.keys(estimate.gates)) {
+            result += `${count} Qubit Gates:\n`;
+            for (const [gate, num] of Object.entries(estimate.gates[count])) {
+                result += `${gate}: ${num}\n`;
+            }
+            result += '\n';
+        }
+        return result;
+    }
+    if (resourceType === ResourceType.QUBITS) {
+        return qubits;
+    }
+    if (resourceType === ResourceType.SWAP) {
+        const gates = estimate.gates[2];
+        if (typeof gates === 'undefined') {
+            return 0;
+        }
+        const swaps = gates.SWAP;
+        if (typeof swaps === 'undefined') {
+            return 0;
+        }
+        return swaps;
+    }
+    if (resourceType.startsWith('nq')) {
+        const n = parseInt(resourceType.substring(2), 10);
+        const gates = estimate.gates[n];
+        if (typeof gates === 'undefined') {
+            return 0;
+        }
+        let res = 0;
+        for (const num of Object.values(gates)) {
+            res += parseInt(num, 10);
+        }
+        return res;
+    }
+    return '';
+};
+
 class QuantumExtension {
     constructor (runtime) {
         this.runtime = runtime;
@@ -92,7 +142,7 @@ class QuantumExtension {
                         }
                     }
                 },
-                "---",
+                '---',
                 {
                     opcode: 'applyGate',
                     blockType: BlockType.COMMAND,
@@ -124,7 +174,7 @@ class QuantumExtension {
                         }
                     }
                 },
-                "---",
+                '---',
                 {
                     opcode: 'controlled',
                     blockType: BlockType.CONDITIONAL,
@@ -166,7 +216,7 @@ class QuantumExtension {
                         }
                     }
                 },
-                "---",
+                '---',
                 {
                     opcode: 'rotateAxis',
                     blockType: BlockType.COMMAND,
@@ -210,7 +260,7 @@ class QuantumExtension {
                         }
                     }
                 },
-                "---",
+                '---',
                 {
                     opcode: 'measure',
                     blockType: BlockType.BOOLEAN,
@@ -293,7 +343,7 @@ class QuantumExtension {
                     arguments: {
                         CIRCUIT: {
                             type: ArgumentType.NUMBER,
-                            defaultValue: '1',
+                            defaultValue: '1'
                         }
                     }
                 },
@@ -305,7 +355,7 @@ class QuantumExtension {
                     arguments: {
                         CIRCUIT: {
                             type: ArgumentType.NUMBER,
-                            defaultValue: '1',
+                            defaultValue: '1'
                         }
                     }
                 },
@@ -317,11 +367,11 @@ class QuantumExtension {
                     arguments: {
                         CIRCUIT: {
                             type: ArgumentType.NUMBER,
-                            defaultValue: '1',
+                            defaultValue: '1'
                         },
                         COUNT: {
                             type: ArgumentType.NUMBER,
-                            defaultValue: '2',
+                            defaultValue: '2'
                         }
                     }
                 },
@@ -333,7 +383,7 @@ class QuantumExtension {
                     arguments: {
                         CIRCUIT: {
                             type: ArgumentType.NUMBER,
-                            defaultValue: '1',
+                            defaultValue: '1'
                         }
                     }
                 },
@@ -418,7 +468,7 @@ class QuantumExtension {
                 simulator: {
                     acceptReporters: true,
                     items: [
-                        {text: 'Statevector Simulator', value: 'Statevector Simulator'},
+                        {text: 'Statevector Simulator', value: 'Statevector Simulator'}
                     ]
                 }
             }
@@ -620,13 +670,13 @@ class QuantumExtension {
 
         const targets = parsedQubit.toQubitList();
 
-        let result = "";
+        let result = '';
 
         for (const target of targets) {
             result += this.getCurrentExecutionInformation(util).simulationState.measure(target);
         }
         return result;
-        //return this.getCurrentExecutionInformation(util).simulationState.measure(parsedQubit);
+        // return this.getCurrentExecutionInformation(util).simulationState.measure(parsedQubit);
 
     }
 
@@ -664,7 +714,7 @@ class QuantumExtension {
         this.genericRunCircuits(util, StatevectorSimulator, startingState);
     }
 
-    _sanitizeREResults(circuit) {
+    _sanitizeREResults (circuit) {
         if (!this.runtime) {
             return 'No Runtime';
         }
@@ -678,11 +728,11 @@ class QuantumExtension {
     }
 
     estimatedCircuitsResources () {
-        const error = this._sanitizeREResults(1);
-        if (error !== '') {
-            return Promise.resolve(error);
+        const problem = this._sanitizeREResults(1);
+        if (problem !== '') {
+            return Promise.resolve(problem);
         }
-        let result = "";
+        let result = '';
 
         for (let i = 0; i < this.runtime.lastResourceEstimate.length; i++) {
             result += _getResourceEstimateOfCircuit(this.runtime.lastResourceEstimate, i, ResourceType.ALL);
@@ -694,42 +744,45 @@ class QuantumExtension {
     }
 
     estimatedCircuitsResourcesOf (args) {
-        const error = this._sanitizeREResults(args.CIRCUIT);
-        if (error !== '') {
-            return Promise.resolve(error);
+        const problem = this._sanitizeREResults(args.CIRCUIT);
+        if (problem !== '') {
+            return Promise.resolve(problem);
         }
-        return Promise.resolve(_getResourceEstimateOfCircuit(this.runtime.lastResourceEstimate, args.CIRCUIT - 1, ResourceType.ALL));
+        return Promise.resolve(_getResourceEstimateOfCircuit(
+            this.runtime.lastResourceEstimate, args.CIRCUIT - 1, ResourceType.ALL));
     }
 
     reQubits (args) {
-        const error = this._sanitizeREResults(args.CIRCUIT);
-        if (error !== '') {
-            return Promise.resolve(error);
+        const problem = this._sanitizeREResults(args.CIRCUIT);
+        if (problem !== '') {
+            return Promise.resolve(problem);
         }
-        return Promise.resolve(_getResourceEstimateOfCircuit(this.runtime.lastResourceEstimate, args.CIRCUIT - 1, ResourceType.QUBITS));
+        return Promise.resolve(_getResourceEstimateOfCircuit(
+            this.runtime.lastResourceEstimate, args.CIRCUIT - 1, ResourceType.QUBITS));
     }
 
     reSwaps (args) {
-        const error = this._sanitizeREResults(args.CIRCUIT);
-        if (error !== '') {
-            return Promise.resolve(error);
+        const problem = this._sanitizeREResults(args.CIRCUIT);
+        if (problem !== '') {
+            return Promise.resolve(problem);
         }
-        return Promise.resolve(_getResourceEstimateOfCircuit(this.runtime.lastResourceEstimate, args.CIRCUIT - 1, ResourceType.SWAP));
+        return Promise.resolve(_getResourceEstimateOfCircuit(
+            this.runtime.lastResourceEstimate, args.CIRCUIT - 1, ResourceType.SWAP));
     }
 
     reGates (args) {
-        const error = this._sanitizeREResults(args.CIRCUIT);
-        if (error !== '') {
-            return Promise.resolve(error);
+        const problem = this._sanitizeREResults(args.CIRCUIT);
+        if (problem !== '') {
+            return Promise.resolve(problem);
         }
-        const count = parseInt(args.COUNT);
-        if (count === NaN || count < 1) {
-            return Promise.resolve("Please Select a Valid Qubit Count");
+        const count = parseInt(args.COUNT, 10);
+        if (Number.isNaN(count) || count < 1) {
+            return Promise.resolve('Please Select a Valid Qubit Count');
         }
 
-        return Promise.resolve(_getResourceEstimateOfCircuit(this.runtime.lastResourceEstimate, args.CIRCUIT - 1, ResourceType.GATES + count));
+        return Promise.resolve(_getResourceEstimateOfCircuit(
+            this.runtime.lastResourceEstimate, args.CIRCUIT - 1, ResourceType.GATES + count));
     }
-
 
 
     estimateCircuitsResources (_args, util) {
@@ -818,6 +871,7 @@ class QuantumExtension {
         return this.circuits.get(thread);
     }
 
+    // eslint-disable-next-line no-unused-vars
     setSimulator (args, util) {
         // TODO: once there are multiple simulators, set the current simulator based on the argument
     }
@@ -837,8 +891,8 @@ class QuantumExtension {
                     // The GUI throws if the block is not in the sprite being edited; never let that escape.
                     try {
                         this.runtime.visualReport(blockId, e.message);
-                    } catch (reportError) {
-                        console.error(reportError);
+                    } catch (reportFailure) {
+                        console.error(reportFailure);
                     }
                 }
             } else {
@@ -881,57 +935,6 @@ class QuantumExtension {
             alert(message); // eslint-disable-line no-alert
         }
     }
-}
-
-const _getResourceEstimateOfCircuit = function (estimatesByCircuit, circuitNumber, resourceType) {
-    if (!(circuitNumber in estimatesByCircuit)) {
-        return "";
-    }
-
-    const estimate = estimatesByCircuit[circuitNumber];
-    const qubits = estimate.qubits;
-
-
-    if (resourceType === ResourceType.ALL) {
-        const estimate = estimatesByCircuit[circuitNumber];
-        let result = "";
-        result += `Total Qubits: ${qubits}\n\n`;
-        for (const count of Object.keys(estimate.gates)) {
-            result += `${count} Qubit Gates:\n`;
-            for (const [gate, num] of Object.entries(estimate.gates[count])) {
-                result += `${gate}: ${num}\n`;
-            }
-            result += '\n';
-        }
-        return result;
-    }
-    if (resourceType == ResourceType.QUBITS) {
-        return qubits;
-    }
-    if (resourceType == ResourceType.SWAP) {
-        const gates = estimate.gates[2];
-        if (gates === undefined) {
-            return 0;
-        }
-        const swaps = gates["SWAP"];
-        if (swaps === undefined) {
-            return 0;
-        }
-        return swaps;
-    }
-    if (resourceType.startsWith("nq")) {
-        const n = parseInt(resourceType.substring(2));
-        const gates = estimate.gates[n];
-        if (gates === undefined) {
-            return 0;
-        }
-        let res = 0;
-        for (const num of Object.values(gates)) {
-            res += parseInt(num);
-        }
-        return res;
-    }
-    return "";
 }
 
 module.exports = QuantumExtension;

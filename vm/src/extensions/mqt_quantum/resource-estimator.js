@@ -201,10 +201,10 @@ class ResourceEstimator extends Simulator {
         }
 
         return {
-            "qubits": this._getNumQubits() + this.ancillas,
-            "gates": gates
-        }
-        /*let result = `Total Qubits: ${this._getNumQubits() + this.ancillas}\n\n`;
+            qubits: this._getNumQubits() + this.ancillas,
+            gates: gates
+        };
+        /* let result = `Total Qubits: ${this._getNumQubits() + this.ancillas}\n\n`;
         const gatesByTargetCount = Object.entries(uses).reduce((acc, [gate, targets]) => {
             if (targets.length === 0) {
                 return acc;
