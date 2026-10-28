@@ -69,6 +69,11 @@ test("applyPatches names a patch that does not apply and aborts", () => {
   assert.throws(() => applyPatches(dir, patches), /0001-Change-a\.patch/);
   assert.equal(hasTrackedChanges(dir), false);
   assert.equal(head(dir), upstream.commit);
+  // A failed `git am` leaves its session behind unless it is aborted.
+  assert.equal(fs.existsSync(path.join(dir, ".git", "rebase-apply")), false);
+  const good = makePatches(upstream, tempDir(), "Change a", { "a.txt": "b\n" });
+  applyPatches(dir, good);
+  assert.equal(readFile(path.join(dir, "a.txt")), "b\n");
 });
 
 test("hasTrackedChanges ignores untracked files", () => {
