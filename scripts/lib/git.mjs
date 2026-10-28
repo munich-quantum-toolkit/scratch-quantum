@@ -85,25 +85,35 @@ export function untrackedFiles(dir) {
 
 /** Write the commits after `base` as patches into `outDir`, replacing the patches there. */
 export function formatPatches(dir, base, outDir) {
-  fs.mkdirSync(outDir, { recursive: true });
-  for (const file of patchFiles(outDir)) fs.rmSync(file);
-  git(
-    dir,
-    [
-      // Without this, the length of the "index" lines depends on the user's config and on the size of the repository.
-      "-c",
-      "core.abbrev=7",
-      "format-patch",
-      "--quiet",
-      "--zero-commit",
-      "--no-signature",
-      "--no-stat",
-      "--no-numbered",
-      "--output-directory",
-      outDir,
-      `${base}..HEAD`,
-    ],
-    ISOLATED,
+  // Format into a temporary directory first, so that a failure leaves the old patches alone.
+  const temp = fs.mkdtempSync(
+    path.join(os.tmpdir(), "scratch-quantum-patches-"),
   );
+  try {
+    git(
+      dir,
+      [
+        // Without this, the length of the "index" lines depends on the user's config and on the size of the repository.
+        "-c",
+        "core.abbrev=7",
+        "format-patch",
+        "--quiet",
+        "--zero-commit",
+        "--no-signature",
+        "--no-stat",
+        "--no-numbered",
+        "--output-directory",
+        temp,
+        `${base}..HEAD`,
+      ],
+      ISOLATED,
+    );
+    fs.mkdirSync(outDir, { recursive: true });
+    for (const file of patchFiles(outDir)) fs.rmSync(file);
+    for (const file of patchFiles(temp))
+      fs.copyFileSync(file, path.join(outDir, path.basename(file)));
+  } finally {
+    fs.rmSync(temp, { recursive: true, force: true });
+  }
   return patchFiles(outDir);
 }

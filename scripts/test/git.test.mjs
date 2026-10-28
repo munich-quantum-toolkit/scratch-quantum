@@ -143,6 +143,16 @@ test("formatPatches replaces old patch files and keeps other files", () => {
   ]);
 });
 
+test("formatPatches keeps the old patches when git format-patch fails", () => {
+  const upstream = makeUpstreamRepo({ "a.txt": "a\n" });
+  const patchDir = tempDir();
+  makePatches(upstream, patchDir, "Change a", { "a.txt": "b\n" });
+  const dir = newTree();
+  cloneAt(dir, upstream.url, upstream.commit);
+  assert.throws(() => formatPatches(dir, "not-a-commit", patchDir));
+  assert.deepEqual(fs.readdirSync(patchDir), ["0001-Change-a.patch"]);
+});
+
 test("patchFiles lists patches in order and tolerates a missing directory", () => {
   const dir = tempDir();
   writeFiles(dir, { "0002-b.patch": "", "0001-a.patch": "", "notes.txt": "" });
