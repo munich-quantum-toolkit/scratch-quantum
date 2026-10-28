@@ -192,7 +192,7 @@ Everything runs in one workflow, `.github/workflows/editor.yml`.
 **Triggers:**
 
 - `pull_request` (`opened`, `reopened`, `synchronize`, `closed`), `push` to `main`, and `workflow_dispatch`.
-- `paths-ignore`: `docs/**`, `**.md`, `.readthedocs.yaml`, `pyproject.toml`, `uv.lock`.
+- No path filters. GitHub evaluates path filters on at most 300 changed files, so a large pull request, such as the one that introduced this workflow, and its merge commit would not run the workflow at all.
 
 **Jobs:**
 
@@ -229,8 +229,7 @@ Everything runs in one workflow, `.github/workflows/editor.yml`.
 - **Site size.** GitHub Pages caps a site at 1 GB. Production uses about 150 MB and each trimmed preview
   about 90 MB, so about nine previews fit at once. Closing a pull request removes its preview.
 - **Forks.** Pull requests from forks get `build` (tests and build) but no preview.
-- **Docs only.** Pull requests that only change docs don't run the workflow at all. Read the Docs builds
-  those.
+- **Docs only.** Pull requests that only change docs still run the workflow; Read the Docs builds the docs.
 
 ## Cutover order
 

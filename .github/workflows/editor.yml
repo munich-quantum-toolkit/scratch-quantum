@@ -3,12 +3,8 @@ name: Editor
 on:
   pull_request:
     types: [opened, reopened, synchronize, closed]
-    paths-ignore:
-      ["docs/**", "**.md", ".readthedocs.yaml", "pyproject.toml", "uv.lock"]
   push:
     branches: [main]
-    paths-ignore:
-      ["docs/**", "**.md", ".readthedocs.yaml", "pyproject.toml", "uv.lock"]
   workflow_dispatch:
 
 permissions:
