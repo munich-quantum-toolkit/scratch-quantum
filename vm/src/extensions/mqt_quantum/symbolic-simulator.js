@@ -31,7 +31,7 @@ class BitString {
     element(index) {
         return this.vector[this.vector.length - 1 - index];
     }
-    
+
     setElement(index, value) {
         this.vector[this.vector.length - 1 - index] = value;
     }
@@ -52,12 +52,12 @@ class StatevectorSimulatorPerRegister {
         const bitVector = new BitString(this.size);
         for (let i = 0; i < this.statevector.length; i++) {
             newStatevector[i] = rule(this.statevector, bitVector, i);
-            bitVector.next(); 
+            bitVector.next();
         }
         this.statevector = newStatevector;
     }
 
-    applyGate(gate, targets, positiveControls, negativeControls) { 
+    applyGate(gate, targets, positiveControls, negativeControls) {
         const checkControls = (bitVector) => {
             for (const contr of positiveControls) {
                 if (bitVector.element(contr) !== 1) {
@@ -167,7 +167,7 @@ class StatevectorSimulatorPerRegister {
             if (bitVector.element(qubit) === 1) {
                 probability += this.statevector[bitVector.int()] ** 2;
             }
-            bitVector.next(); 
+            bitVector.next();
         }
         const randomValue = Math.random();
         const result = randomValue < probability ? 1 : 0;
@@ -211,7 +211,7 @@ class StatevectorSimulator extends Simulator {
 
     createRegister(name, size) {
         this.registers.set(name, new StatevectorSimulatorPerRegister(name, size));
-    }                                                                           
+    }
 
     applyGate(gate, targets, positiveControls, negativeControls) {
         const accesses = targets.map((x) => targetAccess(x));

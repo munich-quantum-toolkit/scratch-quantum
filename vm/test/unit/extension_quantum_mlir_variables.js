@@ -1,6 +1,6 @@
 const test = require('tap').test;
 const ScriptBuilder = require('../fixtures/quantum/script-builder');
-const {exportScript, expectLines, expectExportError, validateWithMqtCc} = require('../fixtures/quantum/mlir-helpers');
+const {exportScript, expectLines, expectExportError, validateWithMQTCC} = require('../fixtures/quantum/mlir-helpers');
 
 test('number variables start with their Scratch value and are folded while constant', t => {
     const b = new ScriptBuilder();
@@ -29,7 +29,7 @@ test('number variables start with their Scratch value and are folded while const
         '%_ = memref.load %_[%_] : memref<3x!qc.qubit>',
         'qc.z %_ : !qc.qubit'
     ]);
-    validateWithMqtCc(t, mlir);
+    validateWithMQTCC(t, mlir);
     t.end();
 });
 
@@ -44,7 +44,7 @@ test('a measurement stored in a variable is an i1 value', t => {
         '%_ = qc.measure %_ : !qc.qubit -> i1',
         'memref.dealloc %_ : memref<1x!qc.qubit>'
     ]);
-    validateWithMqtCc(t, mlir);
+    validateWithMQTCC(t, mlir);
     t.end();
 });
 

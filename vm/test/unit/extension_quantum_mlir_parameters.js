@@ -1,6 +1,6 @@
 const test = require('tap').test;
 const ScriptBuilder = require('../fixtures/quantum/script-builder');
-const {exportScript, expectLines, expectExportError, validateWithMqtCc} = require('../fixtures/quantum/mlir-helpers');
+const {exportScript, expectLines, expectExportError, validateWithMQTCC} = require('../fixtures/quantum/mlir-helpers');
 
 test('rotations and U3 convert degrees to radians', t => {
     const b = new ScriptBuilder();
@@ -22,7 +22,7 @@ test('rotations and U3 convert degrees to radians', t => {
         '%_ = memref.load %_[%_] : memref<1x!qc.qubit>',
         'qc.u(%_, %_, %_) %_ : !qc.qubit'
     ]);
-    validateWithMqtCc(t, mlir);
+    validateWithMQTCC(t, mlir);
     t.end();
 });
 
@@ -49,7 +49,7 @@ test('SWAP', t => {
         '%_ = memref.load %_[%_] : memref<2x!qc.qubit>',
         'qc.swap %_, %_ : !qc.qubit, !qc.qubit'
     ]);
-    validateWithMqtCc(t, mlir);
+    validateWithMQTCC(t, mlir);
     t.end();
 });
 

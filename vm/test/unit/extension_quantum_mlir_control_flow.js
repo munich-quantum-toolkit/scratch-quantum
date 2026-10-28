@@ -1,6 +1,6 @@
 const test = require('tap').test;
 const ScriptBuilder = require('../fixtures/quantum/script-builder');
-const {exportScript, expectLines, expectExportError, validateWithMqtCc} = require('../fixtures/quantum/mlir-helpers');
+const {exportScript, expectLines, expectExportError, validateWithMQTCC} = require('../fixtures/quantum/mlir-helpers');
 
 test('repeat becomes scf.for', t => {
     const b = new ScriptBuilder();
@@ -16,7 +16,7 @@ test('repeat becomes scf.for', t => {
         'qc.h %_ : !qc.qubit',
         '}'
     ]);
-    validateWithMqtCc(t, mlir);
+    validateWithMQTCC(t, mlir);
     t.end();
 });
 
@@ -56,7 +56,7 @@ test('variables changed in a loop are loop-carried', t => {
         '%_ = arith.constant 1.0 : f64',
         '%_ = arith.subf %_, %_ : f64'
     ]);
-    validateWithMqtCc(t, mlir);
+    validateWithMQTCC(t, mlir);
     t.end();
 });
 
@@ -81,7 +81,7 @@ test('if/else on a measurement becomes scf.if', t => {
         'qc.z %_ : !qc.qubit',
         '}'
     ]);
-    validateWithMqtCc(t, mlir);
+    validateWithMQTCC(t, mlir);
     t.end();
 });
 
@@ -105,7 +105,7 @@ test('variables assigned in a branch become scf.if results', t => {
         '%_ = arith.constant 0.017453292519943295 : f64',
         '%_ = arith.mulf %_, %_ : f64'
     ]);
-    validateWithMqtCc(t, mlir);
+    validateWithMQTCC(t, mlir);
     t.end();
 });
 
@@ -135,7 +135,7 @@ test('conditions on numbers and booleans', t => {
     expectLines(t, mlir, ['%_ = arith.constant true', 'scf.if %_ {']);
     expectLines(t, mlir, ['scf.if %_#0 {']);
     // mqt-cc can't lower an i1 carried out of a loop to QIR (ub.poison), so only check up to QCO here.
-    validateWithMqtCc(t, mlir, ['qco-optimized']);
+    validateWithMQTCC(t, mlir, ['qco-optimized']);
     t.end();
 });
 

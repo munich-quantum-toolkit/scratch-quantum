@@ -35,7 +35,7 @@ const expectExportError = (t, builder, hatId, message, blockId) => {
 };
 
 // If MQT_CC points to an mqt-cc binary, assert it accepts `mlir` for every --emit checkpoint.
-const validateWithMqtCc = (t, mlir, emits = ['qco-optimized', 'qir-adaptive']) => {
+const validateWithMQTCC = (t, mlir, emits = ['qco-optimized', 'qir-adaptive']) => {
     const mqtCc = process.env.MQT_CC;
     if (!mqtCc) return;
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'mlir-export-'));
@@ -48,4 +48,4 @@ const validateWithMqtCc = (t, mlir, emits = ['qco-optimized', 'qir-adaptive']) =
     fs.rmSync(dir, {recursive: true, force: true});
 };
 
-module.exports = {exportScript, shape, expectLines, expectExportError, validateWithMqtCc};
+module.exports = {exportScript, shape, expectLines, expectExportError, validateWithMQTCC};

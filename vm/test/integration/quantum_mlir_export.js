@@ -4,7 +4,7 @@ const makeTestStorage = require('../fixtures/make-test-storage');
 const readFileToBuffer = require('../fixtures/readProjectFile').readFileToBuffer;
 const VirtualMachine = require('../../src/index');
 const QuantumExtension = require('../../src/extensions/mqt_quantum/index.js');
-const {validateWithMqtCc} = require('../fixtures/quantum/mlir-helpers');
+const {validateWithMQTCC} = require('../fixtures/quantum/mlir-helpers');
 
 const PROJECTS = ['02-circuits', '03-verification', '04-resource-estimation', '05-compilation'];
 
@@ -25,7 +25,7 @@ for (const project of PROJECTS) {
         t.same(notes, ['Exported circuits to quantum_circuits.mlir']);
         t.equal(downloads.length, 1);
         t.matchSnapshot(downloads[0], 'quantum_circuits.mlir');
-        validateWithMqtCc(t, downloads[0]);
+        validateWithMQTCC(t, downloads[0]);
         vm.quit();
     });
 }

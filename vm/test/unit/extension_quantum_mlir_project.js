@@ -1,7 +1,7 @@
 const test = require('tap').test;
 const ScriptBuilder = require('../fixtures/quantum/script-builder');
 const {exportProjectToMLIR} = require('../../src/extensions/mqt_quantum/exporter');
-const {expectLines, shape, validateWithMqtCc} = require('../fixtures/quantum/mlir-helpers');
+const {expectLines, shape, validateWithMQTCC} = require('../fixtures/quantum/mlir-helpers');
 
 const circuit = (builder, hatId, spriteName) => ({
     blocks: builder.container(),
@@ -22,7 +22,7 @@ test('a single circuit is the body of @main', t => {
         'func.func @main() attributes {mqt.entry_point} {',
         '%_ = memref.alloc() {mqt.register_name = "q"} : memref<1x!qc.qubit>'
     ]);
-    validateWithMqtCc(t, mlir);
+    validateWithMQTCC(t, mlir);
     t.end();
 });
 
@@ -62,7 +62,7 @@ test('several circuits become private functions that @main calls with registers 
         '}',
         ''
     ].join('\n'));
-    validateWithMqtCc(t, mlir);
+    validateWithMQTCC(t, mlir);
     t.end();
 });
 
@@ -92,7 +92,7 @@ test('registers are passed in creation order and deallocated in reverse order', 
     ]);
     t.match(mlir, 'func.call @circuit_1(%circuit_1_a, %circuit_1_b)');
     t.match(mlir, 'memref.dealloc %circuit_1_b : memref<2x!qc.qubit>\n    memref.dealloc %circuit_1_a');
-    validateWithMqtCc(t, mlir);
+    validateWithMQTCC(t, mlir);
     t.end();
 });
 
@@ -112,7 +112,7 @@ test('a circuit without registers gets a function without arguments', t => {
         'memref.dealloc %_ : memref<1x!qc.qubit>',
         'return'
     ]);
-    validateWithMqtCc(t, mlir);
+    validateWithMQTCC(t, mlir);
     t.end();
 });
 
@@ -158,6 +158,6 @@ test('line breaks in sprite names stay inside the comment', t => {
     t.notOk(lines.some(line => line.startsWith('2"')), 'CRLF is replaced too');
     t.ok(lines.includes('// \'Quantum Circuit\' script of sprite "Sprite func.func @evil()"'));
     t.ok(lines.includes('// \'Quantum Circuit\' script of sprite "Sprite 2"'));
-    validateWithMqtCc(t, mlir);
+    validateWithMQTCC(t, mlir);
     t.end();
 });

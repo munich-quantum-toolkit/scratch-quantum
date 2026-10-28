@@ -1,6 +1,6 @@
 const test = require('tap').test;
 const ScriptBuilder = require('../fixtures/quantum/script-builder');
-const {exportScript, expectLines, expectExportError, validateWithMqtCc} = require('../fixtures/quantum/mlir-helpers');
+const {exportScript, expectLines, expectExportError, validateWithMQTCC} = require('../fixtures/quantum/mlir-helpers');
 
 test('registers and gates, broadcast over all qubits of a register', t => {
     const b = new ScriptBuilder();
@@ -23,7 +23,7 @@ test('registers and gates, broadcast over all qubits of a register', t => {
         'memref.dealloc %_ : memref<2x!qc.qubit>',
         'return'
     ]);
-    validateWithMqtCc(t, mlir);
+    validateWithMQTCC(t, mlir);
     t.end();
 });
 
@@ -45,7 +45,7 @@ test('qubits typed as text and combined with "and"', t => {
         'memref.dealloc %_ : memref<2x!qc.qubit>',
         'memref.dealloc %_ : memref<1x!qc.qubit>'
     ]);
-    validateWithMqtCc(t, mlir);
+    validateWithMQTCC(t, mlir);
     t.end();
 });
 
@@ -59,7 +59,7 @@ test('skipped blocks leave a comment but keep their measurements', t => {
         '%_ = memref.load %_[%_] : memref<1x!qc.qubit>',
         '%_ = qc.measure %_ : !qc.qubit -> i1'
     ]);
-    validateWithMqtCc(t, mlir);
+    validateWithMQTCC(t, mlir);
     t.end();
 });
 

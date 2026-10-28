@@ -1,6 +1,6 @@
 const test = require('tap').test;
 const ScriptBuilder = require('../fixtures/quantum/script-builder');
-const {exportScript, expectLines, expectExportError, validateWithMqtCc} = require('../fixtures/quantum/mlir-helpers');
+const {exportScript, expectLines, expectExportError, validateWithMQTCC} = require('../fixtures/quantum/mlir-helpers');
 
 test('each controlled gate becomes a qc.ctrl; negative controls are wrapped in X gates', t => {
     const b = new ScriptBuilder();
@@ -23,7 +23,7 @@ test('each controlled gate becomes a qc.ctrl; negative controls are wrapped in X
         '} : {!qc.qubit, !qc.qubit}, {!qc.qubit}',
         'qc.x %_ : !qc.qubit'
     ]);
-    validateWithMqtCc(t, mlir);
+    validateWithMQTCC(t, mlir);
     t.end();
 });
 
@@ -47,7 +47,7 @@ test('nested controls are flattened and apply to every gate in the body', t => {
         'qc.yield',
         '} : {!qc.qubit, !qc.qubit}, {!qc.qubit, !qc.qubit}'
     ]);
-    validateWithMqtCc(t, mlir);
+    validateWithMQTCC(t, mlir);
     t.end();
 });
 

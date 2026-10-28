@@ -617,7 +617,7 @@ class QuantumExtension {
             return error('Invalid qubit value');
         }
         const parsedQubit = AST.parse(qubit).root;
-        
+
         const targets = parsedQubit.toQubitList();
 
         let result = "";
@@ -730,7 +730,7 @@ class QuantumExtension {
         return Promise.resolve(_getResourceEstimateOfCircuit(this.runtime.lastResourceEstimate, args.CIRCUIT - 1, ResourceType.GATES + count));
     }
 
-    
+
 
     estimateCircuitsResources (_args, util) {
         const result = this.genericRunCircuits(util, ResourceEstimator, new ResourceEstimatorSettings(
