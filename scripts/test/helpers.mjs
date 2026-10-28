@@ -102,5 +102,5 @@ export function makeProject() {
     makePatches(vmUpstream, patchDir, "Patch the engine", {
       "src/engine.js": "patched again\n",
     });
-  return { root, vmUpstream, patchDir, changePatches };
+  return { root, vmUpstream, guiUpstream, patchDir, changePatches };
 }

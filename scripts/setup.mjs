@@ -53,7 +53,8 @@ export function setup({
   const paths = layout(root);
   const upstream = readUpstream(root);
   const state = readState(paths.stateFile);
-  for (const repo of REPOS) {
+  // Decide for every repo before changing any of them, so that a stop for one repo leaves all trees as they were.
+  const plans = REPOS.map((repo) => {
     const tree = paths.tree(repo);
     const patches = patchFiles(paths.patches(repo));
     const wanted = {
@@ -75,6 +76,9 @@ export function setup({
           `Run "npm run patches:update" to keep them, or "npm run setup -- --force" to move .upstream/${repo} aside.`,
       );
     }
+    return { repo, tree, patches, wanted, action };
+  });
+  for (const { repo, tree, patches, wanted, action } of plans) {
     if (action === "backup") {
       const backup = `${tree}.bak-${timestamp()}`;
       fs.renameSync(tree, backup);
@@ -95,8 +99,17 @@ export function setup({
       install &&
       (action !== "keep" || !fs.existsSync(path.join(tree, "node_modules")))
     ) {
-      // HUSKY=0 keeps upstream's commit hooks out of .upstream, so that patch commits need no special format.
-      run("npm", ["ci"], { cwd: tree, env: { HUSKY: "0" } });
+      try {
+        // HUSKY=0 keeps upstream's commit hooks out of .upstream, so that patch commits need no special format.
+        run("npm", ["ci"], { cwd: tree, env: { HUSKY: "0" } });
+      } catch (error) {
+        // A failed install can leave a partial node_modules, which the next run would keep. Remove it so that the next run installs again.
+        fs.rmSync(path.join(tree, "node_modules"), {
+          recursive: true,
+          force: true,
+        });
+        throw error;
+      }
     }
   }
   if (install) linkVmIntoGui(paths);

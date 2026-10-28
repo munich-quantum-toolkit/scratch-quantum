@@ -109,6 +109,23 @@ test("--force moves a changed tree aside instead of deleting it", () => {
   );
 });
 
+test("setup changes no tree when a later tree must stop", () => {
+  const { root, guiUpstream, changePatches } = makeProject();
+  run(root);
+  makePatches(guiUpstream, path.join(root, "patches", "gui"), "Patch the gui", {
+    "src/gui.js": "patched gui\n",
+  });
+  writeFiles(inTree(root, "gui"), { "src/gui.js": "my edit\n" });
+  const vmHead = head(inTree(root, "vm"));
+  changePatches();
+  assert.throws(() => run(root), /patches:update/);
+  assert.equal(
+    readFile(inTree(root, "vm", "src/engine.js")),
+    "patched engine\n",
+  );
+  assert.equal(head(inTree(root, "vm")), vmHead);
+});
+
 test("a patch that does not apply leaves no tree behind", () => {
   const { root, vmUpstream, patchDir } = makeProject();
   const other = makeUpstreamRepo({ "src/engine.js": "different\n" });
