@@ -1,8 +1,9 @@
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { run } from "./run.mjs";
 
-// A fixed committer and author dates make `git am` produce the same commits on every machine.
+// The fixed committer identity and --committer-date-is-author-date (the dates come from the patches) make `git am` produce the same commits on every machine.
 const COMMITTER = [
   "-c",
   "user.name=scratch-quantum setup",
@@ -10,7 +11,12 @@ const COMMITTER = [
   "user.email=setup@scratch-quantum.invalid",
 ];
 
-const git = (dir, args) => run("git", args, { cwd: dir, capture: true }).trim();
+const git = (dir, args, env) =>
+  run("git", args, { cwd: dir, capture: true, env }).trim();
+
+// Commands that write or read patches ignore the user's git config (signing, sign-off, abbreviation length, ...).
+// `git fetch` keeps it, because it may need the user's proxy settings.
+const ISOLATED = { GIT_CONFIG_GLOBAL: os.devNull, GIT_CONFIG_NOSYSTEM: "1" };
 
 /** Make `dir` a shallow checkout of `commit` from `repository`. */
 export function cloneAt(dir, repository, commit) {
@@ -34,16 +40,20 @@ export function patchFiles(dir) {
 export function applyPatches(dir, files) {
   for (const file of files) {
     try {
-      git(dir, [
-        ...COMMITTER,
-        "am",
-        "--quiet",
-        "--committer-date-is-author-date",
-        file,
-      ]);
+      git(
+        dir,
+        [
+          ...COMMITTER,
+          "am",
+          "--quiet",
+          "--committer-date-is-author-date",
+          file,
+        ],
+        ISOLATED,
+      );
     } catch (error) {
       try {
-        git(dir, ["am", "--abort"]);
+        git(dir, [...COMMITTER, "am", "--abort"], ISOLATED);
       } catch {
         // Nothing to abort.
       }
@@ -77,16 +87,23 @@ export function untrackedFiles(dir) {
 export function formatPatches(dir, base, outDir) {
   fs.mkdirSync(outDir, { recursive: true });
   for (const file of patchFiles(outDir)) fs.rmSync(file);
-  git(dir, [
-    "format-patch",
-    "--quiet",
-    "--zero-commit",
-    "--no-signature",
-    "--no-stat",
-    "--no-numbered",
-    "--output-directory",
-    outDir,
-    `${base}..HEAD`,
-  ]);
+  git(
+    dir,
+    [
+      // Without this, the length of the "index" lines depends on the user's config and on the size of the repository.
+      "-c",
+      "core.abbrev=7",
+      "format-patch",
+      "--quiet",
+      "--zero-commit",
+      "--no-signature",
+      "--no-stat",
+      "--no-numbered",
+      "--output-directory",
+      outDir,
+      `${base}..HEAD`,
+    ],
+    ISOLATED,
+  );
   return patchFiles(outDir);
 }

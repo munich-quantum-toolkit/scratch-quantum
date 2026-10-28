@@ -48,6 +48,33 @@ test("patches survive a round trip byte for byte", () => {
   assert.deepEqual(fs.readFileSync(again[0]), original);
 });
 
+test("the user's git config does not change how patches apply or format", () => {
+  const upstream = makeUpstreamRepo({ "a.txt": "a\n" });
+  const patchDir = tempDir();
+  const patches = makePatches(upstream, patchDir, "Change a", {
+    "a.txt": "b\n",
+  });
+  const original = fs.readFileSync(patches[0]);
+  const config = path.join(tempDir(), "gitconfig");
+  fs.writeFileSync(
+    config,
+    "[commit]\n\tgpgsign = true\n[format]\n\tsignOff = true\n[core]\n\tabbrev = 12\n",
+  );
+  const dir = newTree();
+  cloneAt(dir, upstream.url, upstream.commit);
+  const previous = process.env.GIT_CONFIG_GLOBAL;
+  process.env.GIT_CONFIG_GLOBAL = config;
+  try {
+    applyPatches(dir, patches);
+    const again = formatPatches(dir, upstream.commit, patchDir);
+    assert.deepEqual(fs.readFileSync(again[0]), original);
+    assert.doesNotMatch(readFile(again[0]), /Signed-off-by/);
+  } finally {
+    if (previous === undefined) delete process.env.GIT_CONFIG_GLOBAL;
+    else process.env.GIT_CONFIG_GLOBAL = previous;
+  }
+});
+
 test("applying the same patches gives the same HEAD everywhere", () => {
   const upstream = makeUpstreamRepo({ "a.txt": "a\n" });
   const patches = makePatches(upstream, tempDir(), "Change a", {
