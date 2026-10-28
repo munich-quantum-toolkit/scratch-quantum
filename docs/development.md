@@ -65,7 +65,7 @@ npm test
 To run single test files, pass their paths relative to `vm/`:
 
 ```bash
-npm test -- test/unit/extension_quantum_gates.js
+npm test -- test/unit/extension_quantum_simulators.js
 ```
 
 The tests of the {doc}`MLIR export <mlir-export>` can validate the exported files with the compiler driver `mqt-cc` of {doc}`MQT Core <core:index>`.
@@ -110,7 +110,7 @@ To replace such a directory anyway, run `npm run setup -- --force`: it moves the
 ## Deploying the editor
 
 You do not deploy the editor by hand.
-The workflow `.github/workflows/editor.yml` tests and builds the editor for every pull request and every push to `main`:
+The workflow `.github/workflows/editor.yml` tests and builds the editor for every pull request and every push to `main` that changes more than the documentation:
 
 - A push to `main` deploys the build to the `gh-pages` branch, from which GitHub Pages serves {{ editor_url }}.
 - A pull request from a branch of this repository gets a preview below {{ editor_url }}, in `pr-preview/pr-<number>/`, and a bot posts the link in the pull request.
