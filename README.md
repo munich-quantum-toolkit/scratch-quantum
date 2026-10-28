@@ -132,6 +132,9 @@ The editor is built on Scratch 3.0, developed by the [Scratch Foundation](https:
 This project is not affiliated with or endorsed by the Scratch Foundation or MIT.
 The Scratch trademarks, including the Scratch name, logo, and Scratch Cat, are property of the Massachusetts Institute of Technology (MIT).
 
+This repository is licensed under the MIT License, except for the directories `vm/`, `gui/`, and `patches/`, which are licensed under the GNU Affero General Public License v3.0 (AGPL-3.0-only) like Scratch itself.
+The deployed editor contains Scratch and is therefore distributed under the AGPL-3.0.
+
 ---
 
 ## Acknowledgements
