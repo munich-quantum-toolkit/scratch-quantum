@@ -27,6 +27,7 @@ jobs:
           restore-keys: npm-
       - run: npm run test:scripts
       - run: npm run setup
+      - run: npm run lint
       - run: npm test
       - run: npm run build
       - uses: actions/upload-artifact@v4

@@ -81,8 +81,7 @@ Check the code with ESLint:
 npm run lint
 ```
 
-ESLint still reports errors in older code of the extension that are not fixed yet.
-Make sure that you do not add new ones in the files you change.
+The pull request checks run it too, so a pull request with ESLint errors fails.
 
 The scripts in `scripts/` have their own tests:
 
