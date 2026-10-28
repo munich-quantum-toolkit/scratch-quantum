@@ -5,8 +5,15 @@ import { pathToFileURL } from "node:url";
 import { cloneAt, formatPatches } from "../lib/git.mjs";
 import { run } from "../lib/run.mjs";
 
+const tempDirs = [];
+process.on("exit", () => {
+  for (const dir of tempDirs) fs.rmSync(dir, { recursive: true, force: true });
+});
+
 export function tempDir() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), "scratch-quantum-test-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "scratch-quantum-test-"));
+  tempDirs.push(dir);
+  return dir;
 }
 
 /** Write `files` ({ relativePath: content }) below `dir`. */
