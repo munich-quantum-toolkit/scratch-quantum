@@ -4,7 +4,7 @@
   "description": "Quantum computing extension for Scratch, built on pinned versions of scratch-vm and scratch-gui",
   "license": "(MIT AND AGPL-3.0-only)",
   "engines": {
-    "node": ">=20.12"
+    "node": ">=24"
   },
   "scripts": {
     "setup": "node scripts/setup.mjs",

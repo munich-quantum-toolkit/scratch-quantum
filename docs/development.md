@@ -32,7 +32,7 @@ The copies are read-only, so most editors warn you if you open one by mistake.
 
 ## Running the editor locally
 
-You need [Node.js](https://nodejs.org/) 20.12 or later (`.nvmrc` pins version 20), `npm`, and `git`.
+You need [Node.js](https://nodejs.org/) 24 or later (`.nvmrc` pins version 24), `npm`, and `git`.
 
 1. Download and patch the upstream repositories and install their dependencies:
 
