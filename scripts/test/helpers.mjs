@@ -69,3 +69,38 @@ export function makePatches(upstream, outDir, subject, files) {
   gitIn(dir, "commit", "--quiet", "--message", subject);
   return formatPatches(dir, upstream.commit, outDir);
 }
+
+/** A repository root with fake upstream repositories, an overlay file per repository and one vm patch. */
+export function makeProject() {
+  const vmUpstream = makeUpstreamRepo({
+    "src/engine.js": "upstream engine\n",
+    LICENSE: "license\n",
+  });
+  const guiUpstream = makeUpstreamRepo({ "src/gui.js": "upstream gui\n" });
+  const root = tempDir();
+  writeFiles(root, {
+    "upstream.json": JSON.stringify({
+      vm: {
+        repository: vmUpstream.url,
+        commit: vmUpstream.commit,
+        version: "1.0.0",
+      },
+      gui: {
+        repository: guiUpstream.url,
+        commit: guiUpstream.commit,
+        version: "2.0.0",
+      },
+    }),
+    "vm/src/extensions/ext/index.js": "extension\n",
+    "gui/src/icons/icon.svg": "<svg/>\n",
+  });
+  const patchDir = path.join(root, "patches", "vm");
+  makePatches(vmUpstream, patchDir, "Patch the engine", {
+    "src/engine.js": "patched engine\n",
+  });
+  const changePatches = () =>
+    makePatches(vmUpstream, patchDir, "Patch the engine", {
+      "src/engine.js": "patched again\n",
+    });
+  return { root, vmUpstream, patchDir, changePatches };
+}
