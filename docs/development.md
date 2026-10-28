@@ -32,7 +32,7 @@ The copies are read-only, so most editors warn you if you open one by mistake.
 
 ## Running the editor locally
 
-You need [Node.js](https://nodejs.org/) 20 or later (`.nvmrc` pins version 20), `npm`, and `git`.
+You need [Node.js](https://nodejs.org/) 20.12 or later (`.nvmrc` pins version 20), `npm`, and `git`.
 
 1. Download and patch the upstream repositories and install their dependencies:
 
@@ -99,7 +99,7 @@ Most changes only touch files in `vm/` and `gui/`.
 If you need to change a file that belongs to `scratch-vm` or `scratch-gui`, change it in `.upstream/` and save the change as a patch:
 
 1. Edit the file in `.upstream/vm` or `.upstream/gui`.
-2. Commit the change in that directory, with a message that explains it, for example `git -C .upstream/vm commit -am "Explain the change"`.
+2. Commit the change in that directory, with a message that explains it, for example `git -C .upstream/vm add -A && git -C .upstream/vm commit -m "Explain the change"`.
    To change an existing patch instead, change its commit, for example with `git rebase -i`.
 3. Write the patches with `npm run patches:update`.
 4. Commit the changed files in `patches/` in this repository.
@@ -116,6 +116,8 @@ The workflow `.github/workflows/editor.yml` tests and builds the editor for ever
 - A pull request from a branch of this repository gets a preview below {{ editor_url }}, in `pr-preview/pr-<number>/`, and a bot posts the link in the pull request.
   Closing the pull request removes the preview.
   Pull requests from forks are tested and built, but get no preview.
+
+If a deployment did not run or was cancelled, run the workflow again from the Actions tab of the repository, or start it for `main` with "Run workflow".
 
 To build the editor locally, run `npm run build`; the result is in `build/`.
 
