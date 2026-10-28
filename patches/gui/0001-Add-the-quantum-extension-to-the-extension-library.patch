@@ -1,0 +1,35 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Damian Rovara <damianrovara@gmail.com>
+Date: Wed, 28 Oct 2026 10:54:56 +0100
+Subject: [PATCH] Add the quantum extension to the extension library
+
+Adds a featured "Quantum" entry that uses the icons in `src/lib/libraries/extensions/quantum/`.
+
+diff --git a/src/lib/libraries/extensions/index.jsx b/src/lib/libraries/extensions/index.jsx
+index ba18b91..eb3923b 100644
+--- a/src/lib/libraries/extensions/index.jsx
++++ b/src/lib/libraries/extensions/index.jsx
+@@ -4,6 +4,9 @@ import {FormattedMessage} from 'react-intl';
+ import musicIconURL from './music/music.png';
+ import musicInsetIconURL from './music/music-small.svg';
+ 
++import quantumIconURL from './quantum/quantum.png';
++import quantumInsetIconURL from './quantum/quantum.svg';
++
+ import penIconURL from './pen/pen.png';
+ import penInsetIconURL from './pen/pen-small.svg';
+ 
+@@ -317,5 +320,13 @@ export default [
+             />
+         ),
+         helpLink: 'https://scratch.mit.edu/vernier'
++    },
++    {
++        name: 'Quantum',
++        extensionId: 'quantum',
++        iconURL: quantumIconURL,
++        insetIconURL: quantumInsetIconURL,
++        description: "Design quantum circuits using scratch.",
++        featured: true
+     }
+ ];
