@@ -9,6 +9,7 @@ import {
   hasTrackedChanges,
   head,
   patchFiles,
+  untrackedFiles,
 } from "../lib/git.mjs";
 import {
   makePatches,
@@ -84,6 +85,24 @@ test("hasTrackedChanges ignores untracked files", () => {
   assert.equal(hasTrackedChanges(dir), false);
   writeFiles(dir, { "a.txt": "changed\n" });
   assert.equal(hasTrackedChanges(dir), true);
+});
+
+test("untrackedFiles lists new files, but not ignored ones", () => {
+  const upstream = makeUpstreamRepo({
+    "a.txt": "a\n",
+    ".gitignore": "build/\n",
+  });
+  const dir = newTree();
+  cloneAt(dir, upstream.url, upstream.commit);
+  writeFiles(dir, {
+    "new.txt": "new\n",
+    "src/deep/other file.js": "x\n",
+    "build/out.js": "ignored\n",
+  });
+  assert.deepEqual(untrackedFiles(dir).sort(), [
+    "new.txt",
+    "src/deep/other file.js",
+  ]);
 });
 
 test("formatPatches replaces old patch files and keeps other files", () => {

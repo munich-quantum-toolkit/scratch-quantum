@@ -63,6 +63,16 @@ export function hasTrackedChanges(dir) {
   return git(dir, ["status", "--porcelain", "--untracked-files=no"]) !== "";
 }
 
+/** The untracked files in `dir` that .gitignore does not hide, as relative paths with "/" separators. */
+export function untrackedFiles(dir) {
+  const output = run(
+    "git",
+    ["ls-files", "--others", "--exclude-standard", "-z"],
+    { cwd: dir, capture: true },
+  );
+  return output.split("\0").filter(Boolean);
+}
+
 /** Write the commits after `base` as patches into `outDir`, replacing the patches there. */
 export function formatPatches(dir, base, outDir) {
   fs.mkdirSync(outDir, { recursive: true });

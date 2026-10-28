@@ -7,6 +7,7 @@ import {
   hasTrackedChanges,
   head,
   patchFiles,
+  untrackedFiles,
 } from "./lib/git.mjs";
 import { layout, readUpstream, REPO_ROOT, REPOS } from "./lib/layout.mjs";
 import { syncOverlay } from "./lib/overlay.mjs";
@@ -17,6 +18,19 @@ import {
   readState,
   writeState,
 } from "./lib/state.mjs";
+
+/** Whether the tree holds work that is not in the patches: changes to tracked files, or new files that are not overlay copies. */
+function hasLocalWork(paths, repo) {
+  const tree = paths.tree(repo);
+  if (hasTrackedChanges(tree)) return true;
+  const { manifest } = paths.overlayOptions(repo);
+  const overlay = new Set(
+    fs.existsSync(manifest)
+      ? JSON.parse(fs.readFileSync(manifest, "utf8"))
+      : [],
+  );
+  return untrackedFiles(tree).some((file) => !overlay.has(file));
+}
 
 const timestamp = () => new Date().toISOString().replace(/[:.]/g, "-");
 
@@ -67,7 +81,7 @@ export function setup({
       recorded: state[repo],
       wanted,
       head: exists ? head(tree) : undefined,
-      dirty: exists && hasTrackedChanges(tree),
+      dirty: exists && hasLocalWork(paths, repo),
       force,
     });
     if (action === "stop") {

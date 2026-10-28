@@ -69,6 +69,30 @@ test("setup stops instead of discarding uncommitted changes", () => {
   assert.equal(readFile(inTree(root, "vm", "src/engine.js")), "my edit\n");
 });
 
+test("setup stops instead of discarding a new untracked file", () => {
+  const { root, changePatches } = makeProject();
+  run(root);
+  writeFiles(inTree(root, "vm"), { "src/new-upstream-file.js": "mine\n" });
+  changePatches();
+  assert.throws(() => run(root), /patches:update/);
+  assert.equal(
+    readFile(inTree(root, "vm", "src/new-upstream-file.js")),
+    "mine\n",
+  );
+  run(root, { force: true });
+  const backup = fs
+    .readdirSync(path.join(root, ".upstream"))
+    .find((name) => name.startsWith("vm.bak-"));
+  assert.equal(
+    readFile(path.join(root, ".upstream", backup, "src/new-upstream-file.js")),
+    "mine\n",
+  );
+  assert.equal(
+    fs.existsSync(inTree(root, "vm", "src/new-upstream-file.js")),
+    false,
+  );
+});
+
 test("setup stops instead of discarding commits that are not in patches/", () => {
   const { root, changePatches } = makeProject();
   run(root);
