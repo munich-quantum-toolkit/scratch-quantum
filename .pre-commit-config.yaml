@@ -12,9 +12,9 @@ ci:
   autoupdate_schedule: quarterly
   autofix_commit_msg: "🎨 pre-commit fixes"
 
-# The deployed web app at the repository root is a generated build (see docs/development.md) and must not be modified.
+# Patches must apply byte for byte, and tap snapshots must match the test output exactly.
 # The design specs and plans in docs/superpowers/ are kept as written.
-exclude: ^(chunks/|static/|[^/]+\.(html|js|map|hex)$|docs/superpowers/)
+exclude: ^(patches/|vm/tap-snapshots/|docs/superpowers/)
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -52,6 +52,8 @@ repos:
     hooks:
       - id: prettier
         types_or: [yaml, markdown, html, css, scss, javascript, json]
+        # The extension follows the eslint style of upstream Scratch.
+        exclude: ^(vm|gui)/
   - repo: https://github.com/adhtruong/mirrors-typos
     rev: v1.42.0
     hooks:

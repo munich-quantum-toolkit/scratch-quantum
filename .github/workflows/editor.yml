@@ -1,0 +1,103 @@
+name: Editor
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, closed]
+    paths-ignore:
+      ["docs/**", "**.md", ".readthedocs.yaml", "pyproject.toml", "uv.lock"]
+  push:
+    branches: [main]
+    paths-ignore:
+      ["docs/**", "**.md", ".readthedocs.yaml", "pyproject.toml", "uv.lock"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Test and build
+    if: github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: npm-${{ hashFiles('upstream.json', 'patches/**') }}
+          restore-keys: npm-
+      - run: npm run test:scripts
+      - run: npm run setup
+      - run: npm test
+      - run: npm run build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: editor
+          path: build/
+          retention-days: 7
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    concurrency:
+      group: gh-pages
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: editor
+          path: build
+      - run: touch build/.nojekyll
+      # single-commit keeps gh-pages to one commit; clean-exclude keeps the pull request previews.
+      - uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: gh-pages
+          folder: build
+          clean-exclude: pr-preview/
+          single-commit: true
+
+  preview:
+    name: Preview
+    needs: build
+    # Runs after a successful build, or to remove the preview when the pull request closes.
+    # Pull requests from forks get no preview: their workflows can't push to this repository.
+    if: >-
+      !cancelled() &&
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      (needs.build.result == 'success' || github.event.action == 'closed')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    concurrency:
+      group: gh-pages
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - if: github.event.action != 'closed'
+        uses: actions/download-artifact@v4
+        with:
+          name: editor
+          path: build
+      # GitHub Pages sites may hold at most 1 GB, so previews keep only what the editor loads.
+      - if: github.event.action != 'closed'
+        run: |
+          rm -f build/player.* build/blocksonly.* build/blocks-only.html build/compatibilitytesting.* build/compatibility-testing.html
+          find build -name '*.map' -delete
+          du -sh build
+      # pr-preview-action does nothing for "reopened" in auto mode, so the action is set explicitly.
+      - uses: rossjrw/pr-preview-action@v1
+        with:
+          source-dir: build
+          preview-branch: gh-pages
+          umbrella-dir: pr-preview
+          action: ${{ github.event.action == 'closed' && 'remove' || 'deploy' }}
