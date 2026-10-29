@@ -107,7 +107,7 @@ class LeafNode {
             return error(`Invalid qubit format, expected "register[index]", got ${qubit}`);
         }
         const register = parts[0].trim();
-        const index = parts[1].trim().replace(']', '');
+        const index = parts[1].trim().replace(/\]$/, '');
         validateRegisterName(register);
         this.register = register;
         this.index = validateQubitIndex(index);
