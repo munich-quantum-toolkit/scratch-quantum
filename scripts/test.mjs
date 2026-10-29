@@ -1,3 +1,10 @@
+// Copyright (c) 2026 Chair for Design Automation, TUM
+// All rights reserved.
+//
+// SPDX-License-Identifier: MIT
+//
+// Licensed under the MIT License
+
 import path from "node:path";
 import { main } from "./lib/cli.mjs";
 import { layout, REPO_ROOT } from "./lib/layout.mjs";

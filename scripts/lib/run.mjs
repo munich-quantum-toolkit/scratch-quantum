@@ -1,3 +1,10 @@
+// Copyright (c) 2026 Chair for Design Automation, TUM
+// All rights reserved.
+//
+// SPDX-License-Identifier: MIT
+//
+// Licensed under the MIT License
+
 import { spawnSync } from "node:child_process";
 
 /** npm and npx are batch files on Windows, which only start through a shell. */

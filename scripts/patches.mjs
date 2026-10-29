@@ -1,3 +1,10 @@
+// Copyright (c) 2026 Chair for Design Automation, TUM
+// All rights reserved.
+//
+// SPDX-License-Identifier: MIT
+//
+// Licensed under the MIT License
+
 import { main } from "./lib/cli.mjs";
 import { formatPatches, hasTrackedChanges, head } from "./lib/git.mjs";
 import {

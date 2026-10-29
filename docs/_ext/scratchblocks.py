@@ -1,3 +1,10 @@
+# Copyright (c) 2026 Chair for Design Automation, TUM
+# All rights reserved.
+#
+# SPDX-License-Identifier: MIT
+#
+# Licensed under the MIT License
+
 """Render Scratch blocks with scratchblocks (https://scratchblocks.github.io).
 
 The ``scratchblocks`` directive emits the block text in a ``<pre class="blocks">`` element.
