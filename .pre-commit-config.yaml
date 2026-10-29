@@ -66,9 +66,31 @@ repos:
         entry: PyBind|Numpy|Cmake|CCache|Github|PyTest|Mqt|Tum|MQTopt|MQTref
         exclude: .pre-commit-config.yaml
   - repo: https://github.com/python-jsonschema/check-jsonschema
-    rev: 0.36.0
+    rev: 0.38.2
     hooks:
+      - id: check-github-workflows
       - id: check-readthedocs
+      - id: check-renovate
+        additional_dependencies: [json5]
+  - repo: https://github.com/zizmorcore/zizmor-pre-commit
+    rev: v1.31.1
+    hooks:
+      - id: zizmor
+        args:
+          [
+            "--no-progress",
+            "--min-severity=informational",
+            "--min-confidence=low",
+            "--persona=pedantic",
+          ]
+  - repo: https://github.com/emzeat/mz-lictools
+    rev: v2.9.0
+    hooks:
+      - id: license-tools
+  - repo: https://github.com/tox-dev/pyproject-fmt
+    rev: v2.30.3
+    hooks:
+      - id: pyproject-fmt
   - repo: https://github.com/henryiii/validate-pyproject-schema-store
     rev: 2026.01.10
     hooks:

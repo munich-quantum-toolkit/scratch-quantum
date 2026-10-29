@@ -3,22 +3,28 @@ name = "scratch-quantum-docs"
 version = "0.0.0"
 description = "Documentation of the quantum computing extension for Scratch"
 requires-python = ">=3.12"
+classifiers = [
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Programming Language :: Python :: 3.15",
+]
 
 [dependency-groups]
 docs = [
-    "furo>=2025.9.25",
-    "myst-parser>=4.0.1",
-    "sphinx>=8.2.3",
-    "sphinx-copybutton>=0.5.2",
-    "sphinx-design>=0.6.1",
-    "sphinxcontrib-bibtex>=2.6.5",
-    "sphinxext-opengraph>=0.10.0",
+  "furo>=2025.9.25",
+  "myst-parser>=4.0.1",
+  "sphinx>=8.2.3",
+  "sphinx-copybutton>=0.5.2",
+  "sphinx-design>=0.6.1",
+  "sphinxcontrib-bibtex>=2.6.5",
+  "sphinxext-opengraph>=0.10",
 ]
 
 [tool.uv]
 package = false
 
 [tool.typos]
-[tool.typos.default.extend-words]
-wille = "wille"
-olt = "olt"  # MLIR `arith.cmpf` predicate (ordered less than)
+default.extend-words.wille = "wille"
+default.extend-words.olt = "olt"  # MLIR `arith.cmpf` predicate (ordered less than)
