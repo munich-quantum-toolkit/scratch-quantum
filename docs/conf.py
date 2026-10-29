@@ -1,5 +1,9 @@
 # Copyright (c) 2026 Chair for Design Automation, TUM
 # All rights reserved.
+#
+# SPDX-License-Identifier: MIT
+#
+# Licensed under the MIT License
 
 """Sphinx configuration file."""
 
@@ -27,7 +31,7 @@ project_copyright = "2026 Chair for Design Automation, TUM"
 master_doc = "index"
 
 templates_path = ["_templates"]
-html_css_files = ["custom.css"]
+html_css_files = ["custom.css", "scratchblocks.css"]
 
 extensions = [
     "myst_parser",
