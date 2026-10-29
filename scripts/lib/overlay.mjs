@@ -16,10 +16,19 @@ export function listFiles(dir) {
     .sort();
 }
 
+// Reading without checking first avoids a race between the check and the read.
+function readIfExists(file, encoding) {
+  try {
+    return fs.readFileSync(file, encoding);
+  } catch (error) {
+    if (error.code === "ENOENT") return null;
+    throw error;
+  }
+}
+
 function sameContent(a, b) {
-  if (!fs.existsSync(b) || fs.statSync(a).size !== fs.statSync(b).size)
-    return false;
-  return fs.readFileSync(a).equals(fs.readFileSync(b));
+  const other = readIfExists(b);
+  return other !== null && fs.readFileSync(a).equals(other);
 }
 
 function makeWritable(file) {
@@ -53,9 +62,7 @@ function removeFile(file, root) {
  */
 export function syncOverlay({ source, target, manifest }) {
   const files = listFiles(source);
-  const previous = fs.existsSync(manifest)
-    ? JSON.parse(fs.readFileSync(manifest, "utf8"))
-    : [];
+  const previous = JSON.parse(readIfExists(manifest, "utf8") ?? "[]");
   const current = new Set(files);
   const removed = previous.filter((file) => !current.has(file));
   for (const file of removed) removeFile(path.join(target, file), target);
