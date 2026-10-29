@@ -1,3 +1,10 @@
+// Copyright (c) 2026 Chair for Design Automation, TUM
+// All rights reserved.
+//
+// SPDX-License-Identifier: MIT
+//
+// Licensed under the MIT License
+
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";

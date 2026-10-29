@@ -32,7 +32,7 @@ The copies are read-only, so most editors warn you if you open one by mistake.
 
 ## Running the editor locally
 
-You need [Node.js](https://nodejs.org/) 24 or later (`.nvmrc` pins version 24), `npm`, and `git`.
+You need [Node.js](https://nodejs.org/) 24 or later (`.nvmrc` pins version 24), `npm`, and `git` 2.32 or later.
 
 1. Download and patch the upstream repositories and install their dependencies:
 
@@ -109,7 +109,7 @@ To replace such a directory anyway, run `npm run setup -- --force`: it moves the
 ## Deploying the editor
 
 You do not deploy the editor by hand.
-The workflow `.github/workflows/editor.yml` tests and builds the editor for every pull request and every push to `main` that changes more than the documentation:
+The workflow `.github/workflows/editor.yml` tests and builds the editor for every pull request and every push to `main`:
 
 - A push to `main` deploys the build to the `gh-pages` branch, from which GitHub Pages serves {{ editor_url }}.
 - A pull request from a branch of this repository gets a preview below {{ editor_url }}, in `pr-preview/pr-<number>/`, and a bot posts the link in the pull request.

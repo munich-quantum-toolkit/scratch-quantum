@@ -1,3 +1,5 @@
+[![License: MIT and AGPL-3.0](https://img.shields.io/badge/license-MIT%20%7C%20AGPL--3.0-blue.svg?style=flat-square)](#credits)
+[![CI](https://img.shields.io/github/actions/workflow/status/munich-quantum-toolkit/scratch-quantum/editor.yml?branch=main&style=flat-square&logo=github&label=ci)](https://github.com/munich-quantum-toolkit/scratch-quantum/actions/workflows/editor.yml)
 [![Documentation](https://img.shields.io/readthedocs/scratch-quantum?logo=readthedocs&style=flat-square)](https://mqt.readthedocs.io/projects/scratch-quantum)
 
 <p align="center">
@@ -42,7 +44,7 @@ If you have any questions, feel free to create an [issue](https://github.com/mun
 
 This repository contains the source of the extension, not a copy of Scratch.
 The build downloads `scratch-vm` and `scratch-gui` at pinned versions, applies a few patches, and adds the extension.
-You need Node.js 24 or later and git:
+You need Node.js 24 or later and git 2.32 or later:
 
 ```bash
 npm run setup   # download and prepare Scratch, and install its dependencies

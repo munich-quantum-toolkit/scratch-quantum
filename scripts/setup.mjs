@@ -1,3 +1,10 @@
+// Copyright (c) 2026 Chair for Design Automation, TUM
+// All rights reserved.
+//
+// SPDX-License-Identifier: MIT
+//
+// Licensed under the MIT License
+
 import fs from "node:fs";
 import path from "node:path";
 import { main } from "./lib/cli.mjs";
@@ -87,7 +94,8 @@ export function setup({
     if (action === "stop") {
       throw new Error(
         `.upstream/${repo} has changes that are not in patches/${repo}/ yet, and setup would replace it.\n` +
-          `Run "npm run patches:update" to keep them, or "npm run setup -- --force" to move .upstream/${repo} aside.`,
+          `To keep them, commit them in .upstream/${repo} and run "npm run patches:update". ` +
+          `To move .upstream/${repo} aside instead, run "npm run setup -- --force".`,
       );
     }
     return { repo, tree, patches, wanted, action };

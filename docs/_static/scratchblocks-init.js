@@ -1,3 +1,10 @@
+// Copyright (c) 2026 Chair for Design Automation, TUM
+// All rights reserved.
+//
+// SPDX-License-Identifier: MIT
+//
+// Licensed under the MIT License
+
 // Render every <pre class="blocks"> element (see docs/_ext/scratchblocks.py) as Scratch 3.0 blocks.
 
 // scratchblocks draws all extension blocks in one colour, but the quantum extension gives each group of blocks its own

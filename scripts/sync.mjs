@@ -1,3 +1,10 @@
+// Copyright (c) 2026 Chair for Design Automation, TUM
+// All rights reserved.
+//
+// SPDX-License-Identifier: MIT
+//
+// Licensed under the MIT License
+
 import { main } from "./lib/cli.mjs";
 import { layout, REPO_ROOT, REPOS, requireTrees } from "./lib/layout.mjs";
 import { syncOverlay, watchOverlay } from "./lib/overlay.mjs";
