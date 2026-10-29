@@ -42,7 +42,7 @@ If you have any questions, feel free to create an [issue](https://github.com/mun
 
 This repository contains the source of the extension, not a copy of Scratch.
 The build downloads `scratch-vm` and `scratch-gui` at pinned versions, applies a few patches, and adds the extension.
-You need Node.js 24 or later and git:
+You need Node.js 24 or later and git 2.32 or later:
 
 ```bash
 npm run setup   # download and prepare Scratch, and install its dependencies
