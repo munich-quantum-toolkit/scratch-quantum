@@ -32,7 +32,7 @@ The copies are read-only, so most editors warn you if you open one by mistake.
 
 ## Running the editor locally
 
-You need [Node.js](https://nodejs.org/) 20.12 or later (`.nvmrc` pins version 20), `npm`, and `git`.
+You need [Node.js](https://nodejs.org/) 24 or later (`.nvmrc` pins version 24), `npm`, and `git`.
 
 1. Download and patch the upstream repositories and install their dependencies:
 
@@ -81,8 +81,7 @@ Check the code with ESLint:
 npm run lint
 ```
 
-ESLint still reports errors in older code of the extension that are not fixed yet.
-Make sure that you do not add new ones in the files you change.
+The pull request checks run it too, so a pull request with ESLint errors fails.
 
 The scripts in `scripts/` have their own tests:
 
