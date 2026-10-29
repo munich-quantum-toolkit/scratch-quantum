@@ -1,0 +1,47 @@
+name: Templating
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    paths:
+      - ".github/workflows/templating.yml"
+  workflow_dispatch: # Allow manual triggering
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  render-template:
+    name: Render template
+    runs-on: ubuntu-slim
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - id: create-token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          client-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          permission-contents: write # Needed to push the templating branch
+          permission-pull-requests: write # Needed to open the templating pull request
+      # The editor is deployed continuously and has no releases, so there is no changelog and no Release Drafter.
+      # .gitignore and the contribution and installation guides are specific to this repository.
+      - uses: munich-quantum-toolkit/templates@cf0390a674091c1a428c5c59b90d48c7a38dd51c # v1.6.0
+        with:
+          token: ${{ steps.create-token.outputs.token }}
+          name: Scratch Quantum
+          organization: ${{ github.repository_owner }}
+          project-type: other
+          repository: ${{ github.event.repository.name }}
+          has-changelog-and-upgrade-guide: false
+          synchronize-contribution-guide: false
+          synchronize-gitignore: false
+          synchronize-installation-guide: false
+          synchronize-release-drafter-template: false
